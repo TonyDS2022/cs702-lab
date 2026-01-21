@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Quarto
+_site/
+_freeze/
+.quarto/
+*.html
+!index.html
+
+# TeX
+*.aux
+*.log
+*.out
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+/.quarto/
