@@ -1,0 +1,64 @@
+---
+title: "Lab Week 2: Decision Theory"
+---
+
+## Introduction
+
+Consider an interface agent that adaptively chooses between three interface designs ($D_1, D_2, D_3$) for three different user groups ($U_1, U_2, U_3$). Different users find different levels of utility in different designs. Utility measures how well a design meets user needs—higher is better. The utility matrix below shows these values:
+
+|       | $U_1$ | $U_2$ | $U_3$ |
+|-------|-------|-------|-------|
+| $D_1$ | 9     | 3     | 6     |
+| $D_2$ | 5     | 7     | 4     |
+| $D_3$ | 2     | 6     | 8     |
+
+## Q1. Basic Decision Principles
+
+Using the Maximax, Maximin, and Minimax Regret criteria, determine the optimal decision. If no single option emerges as best, explain why. Show your calculations.
+
+## Q2. Expected Utility
+
+Calculate the expected utility for each design and identify the optimal choice given the probability distribution over user groups: $P(U_1) = 0.3$, $P(U_2) = 0.4$, $P(U_3) = 0.3$.
+
+## Q3. Decision Making
+
+Consider a situation where the agent doesn't know which user group a given user belongs to. The agent has two options:
+
+- Ask the user directly which group they belong to.
+- Immediately present the optimal interface based on the expected utility that you calculated in Q2.
+
+However, asking the user incurs a cost of 1 utility point (though it allows the agent to select the perfect interface for that user). Assume the probability distribution over user groups matches Q2. For a new user with an unknown group, should the agent ask the user or immediately select the design with the highest expected utility? Explain your answer.
+
+## Q4. Decision Theory Implementation
+
+Write a Python program that implements the decision-making methods. Store the utility matrix as a list of lists:
+
+```{python}
+#| eval: false
+utilities = [
+    [9, 3, 6],
+    [5, 7, 4],
+    [2, 6, 8]
+]
+```
+
+Implement and print results for:
+
+- Write a `maxmin_decision` function that implements the Maximin criterion. For each design, find its minimum utility across all user groups, then select the design with the highest minimum utility.
+
+- Write an `expected_utility` function that computes the expected utility for each design and identifies the optimal one. Then, write an `expected_utility_decision` function that makes a decision based on the expected utility values. Use the probability distribution from Q2.
+
+## Deliverable
+
+Submit a zip file to eLearn containing:
+
+- Written answers to Q1–Q3 with explanations and calculations (MS Word, LaTeX, or a scan of legible handwriting)
+- Python code for Q4 implementing the `maxmin_decision`, `expected_utility`, and `expected_utility_decision` functions
+
+## Deadline
+
+Before the Week 3 lecture.
+
+## Related Lecture Notes
+
+- [3. Decision Making](https://smuhci.notion.site/decision-making)
