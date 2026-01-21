@@ -1,0 +1,12 @@
+---
+title: "CS702 Computational Interaction"
+subtitle: "Lab Assignments"
+---
+
+## About
+
+Lab assignments for CS702 Computational Interaction, MSc Computing at Singapore Management University.
+
+## Labs
+
+- [Week 2: Decision Theory](labs/week-02.qmd)

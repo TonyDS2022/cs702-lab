@@ -1,0 +1,22 @@
+{
+  "name": "Quarto Development",
+  "image": "cs702-quarto:latest",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "quarto.quarto",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "james-yu.latex-workshop",
+        "ms-toolsai.jupyter"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "quarto.path": "/opt/quarto/bin/quarto"
+      }
+    }
+  },
+  "postCreateCommand": "uv sync || true",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/cs702-lab,type=bind,consistency=cached",
+  "workspaceFolder": "/workspaces/cs702-lab"
+}
