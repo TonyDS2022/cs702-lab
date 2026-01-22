@@ -108,7 +108,19 @@ Therefore, the optimal decision is $D_1$ or $D_2$.
 Calculate the expected utility for each design and identify the optimal choice given the probability distribution over user groups: $P(U_1) = 0.3$, $P(U_2) = 0.4$, $P(U_3) = 0.3$.
 
 ::: {.callout-tip title="Answer" icon=false}
-*Your answer here...*
+### Expected utility for each design
+
+We compute the expected utility for each design as
+$$
+\begin{aligned}
+\mathbb{E}\bigg[U\big(D_{\text{Maximax}}\big)\bigg] &= 0.3 \times 9 + 0.4 \times 3 + 0.3 \times 6 = 5.7, \\
+\mathbb{E}\bigg[U\big(D_{\text{Maximin}}\big)\bigg] &= 0.3 \times 5 + 0.4 \times 7 + 0.3 \times 4 = 5.5
+\end{aligned}
+$$
+
+Since the optimal decision in the Minimax regret criterion resolves to one of $D_1$ or $D_2$, the expected utility would be either $5.7$ or $5.5$.
+
+Since the Maximax criterion yields the highest expected utility, the optimal decision is $D_{\text{Maximax}}$.
 :::
 
 ## Q3. Decision Making
