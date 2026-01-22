@@ -16,9 +16,100 @@ Consider an interface agent that adaptively chooses between three interface desi
 
 Using the Maximax, Maximin, and Minimax Regret criteria, determine the optimal decision. If no single option emerges as best, explain why. Show your calculations.
 
+::: {.callout-tip title="Answer" icon=false}
+### Maximax criterion
+
+We recall that the Maximax criterion is a decision rule that selects the decision with the maximum maximum utility. We first take the row-wise maximum utility for each decision, then take the maximum of these maxima. Formally,
+
+$$
+a^{*}_{\text{maximax}} = \arg\max_{a \in A} \max_{s \in S} u(a, s)
+$$
+
+We compute the row-wise maximum utilities:
+
+$$
+\begin{aligned}
+\max_{u \in U} u(D_1, u) = \max\{9, 3, 6\} = 9, \\
+\max_{u \in U} u(D_2, u) = \max\{5, 7, 4\} = 7, \\
+\max_{u \in U} u(D_3, u) = \max\{2, 6, 8\} = 8.
+\end{aligned}
+$$
+
+Then, we take the maximum of these maxima:
+
+$$
+\max\{9, 7, 8\} = 9.
+$$
+
+Therefore, the optimal decision is $D_1$.
+
+
+### Maximin criterion
+
+The Maximin criterion is a decision rule that selects the decision with the maximum minimum utility. We first take the column-wise minimum utility for each decision, then take the maximum of these minima. Formally,
+
+$$
+a^{*}_{\text{maximin}} = \arg\max_{a \in A} \min_{s \in S} u(a, s)
+$$
+
+We compute the column-wise minimum utilities:
+
+$$
+\begin{aligned}
+\min_{u \in U} u(D_1, u) = \min\{9, 3, 6\} = 3, \\
+\min_{u \in U} u(D_2, u) = \min\{5, 7, 4\} = 4, \\
+\min_{u \in U} u(D_3, u) = \min\{2, 6, 8\} = 2.
+\end{aligned}
+$$
+
+Then, we take the maximum of these minima:
+
+$$
+\max\{3, 4, 2\} = 4.
+$$
+
+Therefore, the optimal decision is $D_2$.
+
+
+### Minimax regret criterion
+
+The Minimax regret criterion is a decision rule that minimizes the maximum regret. We first compute the regret for each decision, then take the minimum of these regrets. Formally, we compute the regret $r(a,\,s)$ for each decision $a$ as
+$$
+r(a,\,s) = \max_{a' \in A} u(a',\,s) - u(a,\,s)
+$$
+
+Then, we take the minimum of these regrets:
+
+$$
+a^{*}_{\text{minimax regret}} = \arg\min_{a \in A} \max_{s \in S} r(a,\,s)
+$$
+
+We compute the regret matrix and take the row-wise maxima:
+
+$$
+\begin{aligned}
+\max_{s \in S} r(D_1,\,s) = \max\{0, 4, 2\} = 4, \\
+\max_{s \in S} r(D_2,\,s) = \max\{4, 0, 2\} = 4, \\
+\max_{s \in S} r(D_3,\,s) = \max\{7, 1, 0\} = 7.
+\end{aligned}
+$$
+
+Then, we take the minimum of these maxima:
+
+$$
+\min\{4, 4, 7\} = 4.
+$$
+
+Therefore, the optimal decision is $D_1$ or $D_2$.
+:::
+
 ## Q2. Expected Utility
 
 Calculate the expected utility for each design and identify the optimal choice given the probability distribution over user groups: $P(U_1) = 0.3$, $P(U_2) = 0.4$, $P(U_3) = 0.3$.
+
+::: {.callout-tip title="Answer" icon=false}
+*Your answer here...*
+:::
 
 ## Q3. Decision Making
 
@@ -28,6 +119,10 @@ Consider a situation where the agent doesn't know which user group a given user 
 - Immediately present the optimal interface based on the expected utility that you calculated in Q2.
 
 However, asking the user incurs a cost of 1 utility point (though it allows the agent to select the perfect interface for that user). Assume the probability distribution over user groups matches Q2. For a new user with an unknown group, should the agent ask the user or immediately select the design with the highest expected utility? Explain your answer.
+
+::: {.callout-tip title="Answer" icon=false}
+*Your answer here...*
+:::
 
 ## Q4. Decision Theory Implementation
 
@@ -47,6 +142,13 @@ Implement and print results for:
 - Write a `maxmin_decision` function that implements the Maximin criterion. For each design, find its minimum utility across all user groups, then select the design with the highest minimum utility.
 
 - Write an `expected_utility` function that computes the expected utility for each design and identifies the optimal one. Then, write an `expected_utility_decision` function that makes a decision based on the expected utility values. Use the probability distribution from Q2.
+
+::: {.callout-tip title="Answer" icon=false}
+```{python}
+#| eval: true
+# Your implementation here...
+```
+:::
 
 ## Deliverable
 
