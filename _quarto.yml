@@ -17,7 +17,7 @@ format:
   html:
     theme: cyborg
     toc: true
-    code-fold: true
+    code-fold: show
     code-tools: true
 
 execute:
