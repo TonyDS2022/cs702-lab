@@ -133,7 +133,12 @@ Consider a situation where the agent doesn't know which user group a given user 
 However, asking the user incurs a cost of 1 utility point (though it allows the agent to select the perfect interface for that user). Assume the probability distribution over user groups matches Q2. For a new user with an unknown group, should the agent ask the user or immediately select the design with the highest expected utility? Explain your answer.
 
 ::: {.callout-tip title="Answer" icon=false}
-*Your answer here...*
+Since asking the user incurs a utility cost of 1, the expected utility of asking the user is
+$$
+\mathbb{E}\bigg[U\big(D_{\text{Ask}}\big)\bigg] = 0.3 \times (9 - 1) + 0.4 \times (7 - 1) + 0.3 \times (8 - 1) = 6.9 > 5.7.
+$$
+
+Since the expected utility of asking the user is higher than the expected utility of immediately selecting the design with the highest expected utility, the agent should ask the user.
 :::
 
 ## Q4. Decision Theory Implementation
@@ -141,7 +146,7 @@ However, asking the user incurs a cost of 1 utility point (though it allows the 
 Write a Python program that implements the decision-making methods. Store the utility matrix as a list of lists:
 
 ```{python}
-#| eval: false
+#| eval: true
 utilities = [
     [9, 3, 6],
     [5, 7, 4],
@@ -158,7 +163,38 @@ Implement and print results for:
 ::: {.callout-tip title="Answer" icon=false}
 ```{python}
 #| eval: true
-# Your implementation here...
+def maximin_decision(utilities):
+    min_utilities = [min(row) for row in utilities]
+    best_design = max(range(len(min_utilities)), key=lambda i: min_utilities[i])
+    return best_design, min_utilities[best_design]
+
+
+def expected_utility(utilities_row, probabilities):
+    return sum(u * p for u, p in zip(utilities_row, probabilities))
+
+
+def expected_utility_decision(utilities, probabilities):
+    eu_values = [expected_utility(row, probabilities) for row in utilities]
+    best_design = max(range(len(eu_values)), key=lambda i: eu_values[i])
+    return best_design, eu_values[best_design]
+
+
+# Probability distribution from Q2
+probabilities = [0.3, 0.4, 0.3]
+
+# Maximin decision
+design, value = maximin_decision(utilities)
+print(f"Maximin: D{design + 1} with min utility = {value}")
+
+# Expected utility for each design
+print("\nExpected utilities:")
+for i, row in enumerate(utilities):
+    eu = expected_utility(row, probabilities)
+    print(f"  E[U(D{i + 1})] = {eu:.1f}")
+
+# Expected utility decision
+design, value = expected_utility_decision(utilities, probabilities)
+print(f"\nExpected Utility Decision: D{design + 1} with E[U] = {value:.1f}")
 ```
 :::
 
