@@ -19,6 +19,16 @@ format:
     toc: true
     code-fold: show
     code-tools: true
+  pdf:
+    toc: true
+    documentclass: article
+    colorlinks: true
+    geometry:
+      - margin=1in
 
 execute:
   freeze: auto
+
+jupyter:
+  kernel: python3
+  python: .venv/bin/python
