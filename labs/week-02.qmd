@@ -197,18 +197,3 @@ design, value = expected_utility_decision(utilities, probabilities)
 print(f"\nExpected Utility Decision: D{design + 1} with E[U] = {value:.1f}")
 ```
 :::
-
-## Deliverable
-
-Submit a zip file to eLearn containing:
-
-- Written answers to Q1–Q3 with explanations and calculations (MS Word, LaTeX, or a scan of legible handwriting)
-- Python code for Q4 implementing the `maxmin_decision`, `expected_utility`, and `expected_utility_decision` functions
-
-## Deadline
-
-Before the Week 3 lecture.
-
-## Related Lecture Notes
-
-- [3. Decision Making](https://smuhci.notion.site/decision-making)
