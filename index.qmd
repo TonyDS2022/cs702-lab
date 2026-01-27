@@ -10,3 +10,4 @@ Lab assignments for CS702 Computational Interaction, MSc Computing at Singapore 
 ## Labs
 
 - [Week 2: Decision Theory](labs/week-02.qmd)
+- [Week 3: Bayesian Inference](labs/week-03.qmd)

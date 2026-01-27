@@ -12,6 +12,8 @@ website:
         menu:
           - href: labs/week-02.qmd
             text: "Week 2: Decision Theory"
+          - href: labs/week-03.qmd
+            text: "Week 3: Bayesian Inference"
 
 format:
   html:

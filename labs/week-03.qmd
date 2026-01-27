@@ -1,0 +1,68 @@
+---
+title: "Lab Week 3. Bayesian Inference"
+---
+
+## Introduction
+
+This week's lab explores Bayesian inference—a framework for updating beliefs based on new evidence. You'll learn to formulate probabilistic models, represent them graphically using plate notation, and implement them with NumPyro, a probabilistic programming language built on JAX.
+
+Read the scenario below and work through Q1–Q4. Each question builds on the previous one, moving from model specification to implementation and inference.
+
+> An e-commerce company has collected user log data showing how users interact with their website to complete purchase transactions. Each transaction involves several steps, such as product selection, shipping information entry, and payment processing. The company wants to use this transaction log data to model user behavior using Bayesian inference.
+
+## Q1. Probabilistic Modeling
+
+Assume the total time users spend completing the checkout process follows an exponential distribution with rate parameter $\lambda$. Given that the average purchase time is approximately 10 seconds, build a Bayesian model by setting a prior over $\lambda$ rather than directly fixing $\lambda = 0.1$. Propose a reasonable prior distribution for $\lambda$, specify its parameters, and briefly explain your choice. Then, express the complete probabilistic model mathematically.
+
+## Q2. Plate Diagram
+
+Draw the plate notation for your model. Recall that a plate diagram constitutes a graphical representation of a probabilistic model where nodes represent random variables, edges represent dependencies, and plates (rectangles) represent repeated sampling or independent replications of variables across multiple observations or groups.
+
+## Q3. Probabilistic Programming Language (PPL)
+
+Consider the following code that defines a hierarchical probabilistic model using the NumPyro library:
+
+```python
+def hierarchical_model(group_ids=None, checkout_times=None):
+    """
+    Args:
+        group_ids: Group IDs for each observation (0=Group A, 1=Group B)
+        checkout_times: Observed checkout times
+    """
+    alpha_groups = jnp.array([12.0, 8.0])
+    beta_groups = jnp.array([100.0, 100.0])
+
+    lambda_groups = numpyro.sample(
+        "lambda_groups",
+        dist.Gamma(alpha_groups, beta_groups).expand([2])
+    )
+
+    with numpyro.plate("data", len(checkout_times) if checkout_times is not None else 1):
+        numpyro.sample(
+            "checkout_times",
+            dist.Exponential(lambda_groups[group_ids]),
+            obs=checkout_times
+        )
+```
+
+Describe the model's structure and explain how it differs from the models in Q1 and Q2. Interpret the prior distributions for each group and what they suggest about expected checkout times. Then, explain what this model means for the e-commerce company and what insights might it provide.
+
+## Q4. Using PPL
+
+Write a Python function using NumPyro to implement the model from Q1. Your function should:
+
+- Define a prior distribution for the rate parameter $\lambda$ based on your answer to Q1
+- Use an Exponential likelihood for the observed checkout times
+- Accept observed checkout times as input
+
+Then, use your function to perform inference on the following synthetic dataset of checkout times (in seconds):
+
+```python
+checkout_times = jnp.array([8.2, 12.5, 9.1, 15.3, 7.8, 11.2, 10.5, 13.7, 9.9, 14.1])
+```
+
+Use MCMC with the NUTS sampler to obtain posterior samples. Report:
+
+1. The posterior mean and 95% highest density interval for $\lambda$
+2. A visualization of the prior and posterior distributions for $\lambda$
+3. Based on your posterior inference, what is the updated expected checkout time?
