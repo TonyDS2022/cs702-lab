@@ -46,7 +46,7 @@ The plate diagram for the model in Q1 is shown below. The rate parameter $\lambd
 :::
 
 ::: {.content-visible when-format="pdf"}
-![](figures/plate-diagram-q1-light.svg){fig-align="center" width="40%"}
+![](figures/plate-diagram-q1-light.png){fig-align="center" width="40%"}
 :::
 
 **Legend:**
