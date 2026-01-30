@@ -1,0 +1,16 @@
+%%{init: {'theme': 'default', 'themeVariables': { 'primaryColor': '#f0f0f0', 'primaryTextColor': '#222', 'lineColor': '#444' }}}%%
+flowchart TD
+    subgraph prior[" "]
+        lambda(("λ"))
+    end
+
+    subgraph plate["&emsp;&emsp;&emsp; N observations &emsp;&emsp;&emsp;"]
+        T(("T<sub>i</sub>"))
+    end
+
+    lambda --> T
+
+    style lambda fill:#ffffff,stroke:#444,stroke-width:2px,color:#222
+    style T fill:#bbb,stroke:#444,stroke-width:2px,color:#222
+    style plate fill:none,stroke:#2a6e2a,stroke-width:1.5px,stroke-dasharray:5
+    style prior fill:none,stroke:none

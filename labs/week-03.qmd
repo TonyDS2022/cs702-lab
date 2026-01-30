@@ -1,5 +1,6 @@
 ---
 title: "Lab Week 3. Bayesian Inference"
+mermaid-format: png
 ---
 
 ## Introduction
@@ -40,26 +41,13 @@ Draw the plate notation for your model. Recall that a plate diagram constitutes 
 
 The plate diagram for the model in Q1 is shown below. The rate parameter $\lambda$ is sampled once from the Gamma prior, while the checkout times $T_i$ are conditionally independent given $\lambda$ and sampled repeatedly for each of the $n$ observations. The shaded node indicates that $T_i$ is observed.
 
-```{mermaid}
-%%| fig-align: center
-%%| fig-width: 4
-%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#2a2a2a', 'primaryTextColor': '#fff', 'lineColor': '#888' }}}%%
-flowchart TD
-    subgraph prior[" "]
-        lambda(("λ"))
-    end
+::: {.content-visible when-format="html"}
+![](figures/plate-diagram-q1.svg){fig-align="center" width="40%"}
+:::
 
-    subgraph plate["&emsp;&emsp;&emsp; N observations &emsp;&emsp;&emsp;"]
-        T(("T<sub>i</sub>"))
-    end
-
-    lambda --> T
-
-    style lambda fill:#1a1a1a,stroke:#888,stroke-width:2px,color:#67A902
-    style T fill:#444,stroke:#888,stroke-width:2px,color:#fff
-    style plate fill:none,stroke:#6a8759,stroke-width:1px,stroke-dasharray:5
-    style prior fill:none,stroke:none
-```
+::: {.content-visible when-format="pdf"}
+![](figures/plate-diagram-q1-light.svg){fig-align="center" width="40%"}
+:::
 
 **Legend:**
 
@@ -126,7 +114,11 @@ Write a Python function using NumPyro to implement the model from Q1. Your funct
 
 Then, use your function to perform inference on the following synthetic dataset of checkout times (in seconds):
 
-```python
+```{python}
+#| eval: true
+#| output: false
+
+import jax.numpy as jnp
 checkout_times = jnp.array([8.2, 12.5, 9.1, 15.3, 7.8, 11.2, 10.5, 13.7, 9.9, 14.1])
 ```
 
@@ -135,3 +127,156 @@ Use MCMC with the NUTS sampler to obtain posterior samples. Report:
 1. The posterior mean and 95% highest density interval for $\lambda$
 2. A visualization of the prior and posterior distributions for $\lambda$
 3. Based on your posterior inference, what is the updated expected checkout time?
+
+::: {.callout-tip title="Answer" icon=false}
+
+```{python}
+#| eval: true
+#| output: true
+
+import jax
+import jax.numpy as jnp
+import numpy as np
+import numpyro
+import numpyro.distributions as dist
+from numpyro.infer import MCMC, NUTS
+from jax.scipy.stats import gamma as gamma_dist
+import plotly.graph_objects as go
+
+def checkout_model(checkout_times=None):
+    lam = numpyro.sample("lambda", dist.Gamma(1.0, 10.0))
+    with numpyro.plate("data", len(checkout_times) if checkout_times is not None else 1):
+        numpyro.sample("obs", dist.Exponential(lam), obs=checkout_times)
+
+kernel = NUTS(checkout_model)
+mcmc = MCMC(kernel, num_warmup=1000, num_samples=5000, num_chains=1)
+mcmc.run(jax.random.PRNGKey(42), checkout_times=checkout_times)
+mcmc.print_summary()
+```
+
+```{python}
+#| eval: true
+#| output: true
+
+posterior_samples = mcmc.get_samples()["lambda"]
+posterior_mean = float(jnp.mean(posterior_samples))
+sorted_samples = jnp.sort(posterior_samples)
+hdi_lower = float(sorted_samples[int(0.025 * len(sorted_samples))])
+hdi_upper = float(sorted_samples[int(0.975 * len(sorted_samples))])
+
+print(f"Posterior mean of λ: {posterior_mean:.4f}")
+print(f"95% HDI: [{hdi_lower:.4f}, {hdi_upper:.4f}]")
+print(f"Updated expected checkout time (1/λ): {1/posterior_mean:.2f} seconds")
+```
+
+```{python}
+#| eval: true
+#| output: true
+#| label: fig-prior-posterior
+#| fig-cap: "Prior and posterior distributions for λ"
+
+import matplotlib.pyplot as plt
+
+x = np.linspace(0.01, 0.3, 500)
+prior_pdf = np.exp(gamma_dist.logpdf(jnp.array(x), 1.0, scale=1/10.0))
+
+hist_counts, bin_edges = np.histogram(
+    np.array(posterior_samples),
+    bins=50,
+    density=True,
+)
+bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+
+is_html = True
+try:
+    import plotly.graph_objects as go
+except ImportError:
+    is_html = False
+```
+
+::: {.content-visible when-format="html"}
+```{python}
+#| eval: true
+#| output: true
+
+fig = go.Figure()
+fig.add_trace(go.Bar(
+    x=bin_centers, y=hist_counts, width=bin_edges[1] - bin_edges[0],
+    name="Posterior samples",
+    marker_color="rgba(253, 115, 10, 0.6)",
+    marker_line_color="#FD730A",
+    marker_line_width=1,
+))
+fig.add_trace(go.Scatter(
+    x=x, y=np.array(prior_pdf),
+    mode="lines", name="Prior: Γ(1, 10)",
+    line=dict(color="#248DCC", width=2, dash="dash"),
+))
+fig.add_vline(
+    x=posterior_mean, line_dash="dot", line_color="#67A902",
+    annotation_text=f"Posterior mean = {posterior_mean:.4f}",
+    annotation_font_color="#67A902",
+)
+fig.update_layout(
+    template="plotly_dark",
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)",
+    xaxis_title="λ",
+    yaxis_title="Density",
+    title="Prior vs Posterior for λ",
+    font=dict(color="#fff"),
+    legend=dict(font=dict(color="#fff")),
+)
+fig.show()
+```
+:::
+
+::: {.content-visible when-format="pdf"}
+```{python}
+#| eval: true
+#| output: true
+
+import seaborn as sns
+
+sns.set_theme(style="whitegrid", font_scale=1.1, rc={
+    "axes.edgecolor": "#444444",
+    "grid.color": "#e0e0e0",
+    "grid.linestyle": "--",
+    "grid.alpha": 0.4,
+    "figure.facecolor": "white",
+})
+
+fig, ax = plt.subplots(figsize=(8, 4.5))
+
+ax.fill_between(
+    x, np.array(prior_pdf), alpha=0.15, color="#248DCC",
+)
+ax.plot(x, np.array(prior_pdf), color="#248DCC", linewidth=2.5,
+        linestyle="--", label=r"Prior: $\Gamma(1, 10)$")
+
+sns.histplot(
+    np.array(posterior_samples), bins=50, stat="density",
+    color="#FD730A", alpha=0.55, edgecolor="white", linewidth=0.5,
+    label="Posterior samples", ax=ax,
+)
+
+ax.axvline(posterior_mean, linestyle=":", color="#67A902", linewidth=2.5,
+           label=f"Posterior mean = {posterior_mean:.4f}")
+ax.axvspan(hdi_lower, hdi_upper, alpha=0.08, color="#67A902",
+           label=f"95% HDI [{hdi_lower:.4f}, {hdi_upper:.4f}]")
+
+ax.set_xlabel(r"$\lambda$ (rate parameter)", fontsize=12)
+ax.set_ylabel("Density", fontsize=12)
+ax.set_title(
+    r"Prior vs Posterior Distribution for $\lambda$",
+    fontsize=14, fontweight="bold",
+    color="#67A902",
+)
+ax.legend(frameon=True, fancybox=True, shadow=True, fontsize=10)
+sns.despine(left=True)
+plt.tight_layout()
+plt.show()
+```
+:::
+
+:::
