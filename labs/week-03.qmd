@@ -14,9 +14,60 @@ Read the scenario below and work through Q1–Q4. Each question builds on the pr
 
 Assume the total time users spend completing the checkout process follows an exponential distribution with rate parameter $\lambda$. Given that the average purchase time is approximately 10 seconds, build a Bayesian model by setting a prior over $\lambda$ rather than directly fixing $\lambda = 0.1$. Propose a reasonable prior distribution for $\lambda$, specify its parameters, and briefly explain your choice. Then, express the complete probabilistic model mathematically.
 
+::: {.callout-tip title="Answer" icon=false}
+
+We desire a distribution to encode our prior belief about the rate parameter $\lambda$ should approximately be $0.1$. Importantly, the distribution should satisfy the property $\lambda > 0$ and be a conjugate prior to the exponential distribution.
+
+We can select $\lambda \sim \Gamma(1, 10)$ as a weakly informative prior with mean $0.1$ and standard deviation $0.1$.
+
+The complete probabilistic model is given by:
+
+$$
+\begin{aligned}
+\lambda_{0} &\sim \Gamma(1, 10), \\
+\lambda | T_{1:n} &\sim \Gamma\left(1 + n, 10 + \sum_{i=1}^{n} T_i\right), \\
+T_{i} | \lambda &\sim \text{Exp}(\lambda),\;i=1,\,\ldots,\,n.
+\end{aligned}
+$$
+
+:::
+
 ## Q2. Plate Diagram
 
 Draw the plate notation for your model. Recall that a plate diagram constitutes a graphical representation of a probabilistic model where nodes represent random variables, edges represent dependencies, and plates (rectangles) represent repeated sampling or independent replications of variables across multiple observations or groups.
+
+::: {.callout-tip title="Answer" icon=false}
+
+The plate diagram for the model in Q1 is shown below. The rate parameter $\lambda$ is sampled once from the Gamma prior, while the checkout times $T_i$ are conditionally independent given $\lambda$ and sampled repeatedly for each of the $n$ observations. The shaded node indicates that $T_i$ is observed.
+
+```{mermaid}
+%%| fig-align: center
+%%| fig-width: 4
+%%{init: {'theme': 'dark', 'themeVariables': { 'primaryColor': '#2a2a2a', 'primaryTextColor': '#fff', 'lineColor': '#888' }}}%%
+flowchart TD
+    subgraph prior[" "]
+        lambda(("λ"))
+    end
+
+    subgraph plate["&emsp;&emsp;&emsp; N observations &emsp;&emsp;&emsp;"]
+        T(("T<sub>i</sub>"))
+    end
+
+    lambda --> T
+
+    style lambda fill:#1a1a1a,stroke:#888,stroke-width:2px,color:#67A902
+    style T fill:#444,stroke:#888,stroke-width:2px,color:#fff
+    style plate fill:none,stroke:#6a8759,stroke-width:1px,stroke-dasharray:5
+    style prior fill:none,stroke:none
+```
+
+**Legend:**
+
+- $\lambda \sim \Gamma(1, 10)$ — latent rate parameter (unshaded)
+- $T_i | \lambda \sim \text{Exp}(\lambda)$ — observed checkout times (shaded)
+- The plate indicates $i = 1, \ldots, n$ independent observations
+
+:::
 
 ## Q3. Probabilistic Programming Language (PPL)
 
@@ -46,6 +97,24 @@ def hierarchical_model(group_ids=None, checkout_times=None):
 ```
 
 Describe the model's structure and explain how it differs from the models in Q1 and Q2. Interpret the prior distributions for each group and what they suggest about expected checkout times. Then, explain what this model means for the e-commerce company and what insights might it provide.
+
+::: {.callout-tip title="Answer" icon=false}
+
+The code describes a hierarchical Bayesian model with two user groups (A and B), parameterized by rate parameters $\lambda_A$ and $\lambda_B$. Formally:
+
+$$
+\begin{aligned}
+\lambda_A &\sim \Gamma(12, 100), \\
+\lambda_B &\sim \Gamma(8, 100), \\
+T_i | \lambda_{g_i} &\sim \text{Exp}(\lambda_{g_i}), \quad i = 1, \ldots, n,
+\end{aligned}
+$$
+
+where $g_i \in \{A, B\}$ is the group assignment for observation $i$.
+
+The model described in Q1 and Q2 is parameterized by a single rate parameter $\lambda$ across all observations, implyling that user behavior is homogeneous across all groups. The model in this question allows heterogeneous user behavior based on user segment membership.
+
+:::
 
 ## Q4. Using PPL
 
