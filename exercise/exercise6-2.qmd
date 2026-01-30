@@ -1,0 +1,107 @@
+---
+format:
+  html:
+    theme: cyborg
+    code-fold: show
+    code-tools: true
+  pdf:
+    toc: true
+    geometry:
+      - margin=1in
+mermaid-format: png
+jupyter: python3
+---
+
+# Exercise 6.2: A/B Testing
+
+## Introduction
+
+In this exercise, you will implement and compare different approaches to A/B testing. We'll use a simple scenario:
+
+You are a UX designer testing two button colors (Blue vs Green) for a "Subscribe" button on a website. You want to find out which color leads to more clicks.
+
+- **Arm 0 (Blue button):** True click-through rate $\theta_0 = 0.12$
+- **Arm 1 (Green button):** True click-through rate $\theta_1 = 0.18$
+
+The Green button is better, but you don't know this yet!
+
+## Q1. Batch A/B Testing
+
+In traditional A/B testing, we collect all data first and then analyze it at the end. This is called "batch" A/B testing because we process data in one batch.
+
+Simulate the data collection for this batch A/B testing. Use the parameters above and the code below to: (i) simulate the blue button shown to 500 users; (ii) simulate the green button shown to 500 users.
+
+```python
+import numpy as np
+import numpyro
+import numpyro.distributions as dist
+from jax import random
+
+TRUE_THETA = [0.12, 0.18]
+
+
+def simulate_click(arm: int, theta: float) -> int:
+    """
+    Simulate a user click based on the true click-through rate.
+
+    Args:
+        arm: 0 for Blue button, 1 for Green button
+        theta: The true click-through rate for the given arm
+
+    Returns:
+        1 if clicked, 0 otherwise
+    """
+    if np.random.random() < TRUE_THETA[arm]:
+        return 1
+    return 0
+```
+
+Let's say the click data is generated with the following data generation process:
+
+$$
+\theta \sim \text{Beta}(\alpha, \beta)
+$$
+$$
+\text{click} \sim \text{Bernoulli}(\theta)
+$$
+
+Then:
+
+**Implement the probabilistic model in Python code using NumPyro.**
+
+Using the simulated data, calculate the click-through rate for each button and determine which performs better.
+
+## Q2. Bandit A/B Testing
+
+Now let's implement A/B testing using Thompson Sampling, which adaptively allocates more users to the better-performing button as we gather data. Instead of using fixed allocation, we employ Bayesian inference to update our beliefs about each button's click-through rate and sample from the posterior distribution to determine which button to display.
+
+See the lecture note as an example and implementation guideline. At a high-level, you should:
+
+1. Implement an arm selection function that samples $\hat{\theta}_{\text{blue}}$ and $\hat{\theta}_{\text{green}}$ from their corresponding posterior distributions
+2. Select the arm with the higher sampled value
+3. Show the corresponding button to the user and observe whether they click (you can reuse `simulate_click`)
+4. Update the posterior distribution for the selected arm using the observed outcome
+5. Repeat this process for all 1,000 users. Track which arm you select at each step and the cumulative reward.
+
+Visualize the arm selection over time and the estimates of $\theta$ for each arm across steps. Calculate and plot the regret.
+
+## Q3. Contextual Bandit
+
+Now let's extend our A/B test to include context. Suppose button color effectiveness varies by device—whether users visit from mobile or desktop.
+
+- **Mobile users** prefer Green button ($\theta = 0.25$) over Blue ($\theta = 0.08$)
+- **Desktop users** prefer Blue button ($\theta = 0.20$) over Green ($\theta = 0.10$)
+
+Your task is to implement the contextual bandit model. Build a probabilistic model that captures how click-through rate depends on both device type and button color, and implement it in NumPyro.
+
+Next, implement Thompson Sampling for this contextual setting. At each step:
+
+1. Sample from the posterior distribution for each arm, conditioned on the current user's device type
+2. Select the arm with the higher sampled value
+3. Update the posterior based on the observed outcome
+
+Run this for 1,000 users (with device type randomly assigned). Visualize how the algorithm learns the optimal policy for each context.
+
+## Lecture Note
+
+📖 [6. Multi-armed Bandit](https://smuhci.notion.site/mab)

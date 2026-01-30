@@ -14,6 +14,10 @@ website:
             text: "Week 2: Decision Theory"
           - href: labs/week-03.qmd
             text: "Week 3: Bayesian Inference"
+      - text: Exercises
+        menu:
+          - href: exercise/exercise6-2.qmd
+            text: "Exercise 6.2: A/B Testing"
 
 format:
   html:
