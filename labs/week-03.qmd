@@ -72,15 +72,16 @@ def hierarchical_model(group_ids=None, checkout_times=None):
     beta_groups = jnp.array([100.0, 100.0])
 
     lambda_groups = numpyro.sample(
-        "lambda_groups",
-        dist.Gamma(alpha_groups, beta_groups).expand([2])
+        "lambda_groups", dist.Gamma(alpha_groups, beta_groups).expand([2])
     )
 
-    with numpyro.plate("data", len(checkout_times) if checkout_times is not None else 1):
+    with numpyro.plate(
+        "data", len(checkout_times) if checkout_times is not None else 1
+    ):
         numpyro.sample(
             "checkout_times",
             dist.Exponential(lambda_groups[group_ids]),
-            obs=checkout_times
+            obs=checkout_times,
         )
 ```
 
