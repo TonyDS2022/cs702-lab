@@ -3,6 +3,13 @@ title: "Lab Week 3. Bayesian Inference"
 mermaid-format: png
 ---
 
+```{python}
+#| echo: false
+#| include: false
+
+import numpy as np
+```
+
 ## Introduction
 
 This week's lab explores Bayesian inference—a framework for updating beliefs based on new evidence. You'll learn to formulate probabilistic models, represent them graphically using plate notation, and implement them with NumPyro, a probabilistic programming language built on JAX.
@@ -131,6 +138,44 @@ Use MCMC with the NUTS sampler to obtain posterior samples. Report:
 
 ::: {.callout-tip title="Answer" icon=false}
 
+Before we implement the `numpyro` based solutions, we observe that the posterior distributions has closed form analytical solutions.
+
+Recall that we have a weakly informative prior in the form $\lambda \sim \Gamma(\alpha,\,\beta)$ and the checkout times $T_{i}|\lambda \sim \text{Exp}(\lambda)$.
+
+From Bayes', we have the predictive posterior density
+
+$$
+\begin{align}
+p(T_{n+1}=x\,|\,\mathbf{T}) &= \int_{0}^{\infty} p(T_{n+1} = x\,|\,\lambda) \, p(\lambda\,|\,\mathbf{T})\,d\lambda \\
+&= \int_{0}^{\infty} \lambda e^{-\lambda x} \frac{\beta^{\alpha}}{\Gamma(\alpha)} \lambda^{\alpha - 1} e^{-\beta \lambda}\,d\lambda \\
+&= \frac{\beta^{\alpha}}{\Gamma(\alpha)} \int_{0}^{\infty} \lambda^{\alpha} e^{-(\beta + x)\lambda}\,d\lambda
+\end{align}
+$$
+
+We recall the Gamma identify $\Gamma(n) = \displaystyle\int_{0}^{\infty} t^{n - 1}e^{-t}\,dt$, thus
+
+$$
+\int_{0}^{\infty} \lambda^{\alpha} e^{-(\beta + x)\lambda}\,d\lambda = \frac{\Gamma(\alpha + 1)}{(\beta + x)^{\alpha + 1}} = \frac{\alpha!}{(\beta + x)^{\alpha + 1}}.
+$$
+
+The predictive posterior density therefore reduces to
+$$
+p(T_{n+1}=x\,|\,\mathbf{T}) = \frac{\alpha \beta^{\alpha}}{(\beta + x)^{\alpha + 1}},\;\text{where } x \geq 0.
+$$
+
+This is a Pareto type II distribution with shape $\alpha$ and scale $\beta$. The first and second central moments have closed forms
+
+$$
+\mathbb{E}(T|\mathbf{T}) = \frac{\beta}{\alpha - 1},\;\text{and}
+$$
+
+$$
+\text{Var}(T|\mathbf{T}) = \frac{\beta^{2}\alpha}{(\alpha - 1)^{2}(\alpha - 2)}
+$$
+
+At $\alpha = 11$ and $\beta = 122.3$, the posterior mean evaluates to `{python} f"{122.3/(11 - 1):.2f}"` seconds and the posterior standard deviation evaluates to `{python} f"{np.sqrt(122.3**2 * 11 / ((11 - 1)**2 * (11 - 2))):.2f}"` seconds.
+
+We can now verify this with a `numpyro` implementation.
 ```{python}
 #| eval: true
 #| output: true
