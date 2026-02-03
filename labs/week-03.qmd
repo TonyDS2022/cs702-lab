@@ -145,11 +145,11 @@ Recall that we have a weakly informative prior in the form $\lambda \sim \Gamma(
 From Bayes', we have the predictive posterior density
 
 $$
-\begin{align}
+\begin{aligned}
 p(T_{n+1}=x\,|\,\mathbf{T}) &= \int_{0}^{\infty} p(T_{n+1} = x\,|\,\lambda) \, p(\lambda\,|\,\mathbf{T})\,d\lambda \\
 &= \int_{0}^{\infty} \lambda e^{-\lambda x} \frac{\beta^{\alpha}}{\Gamma(\alpha)} \lambda^{\alpha - 1} e^{-\beta \lambda}\,d\lambda \\
 &= \frac{\beta^{\alpha}}{\Gamma(\alpha)} \int_{0}^{\infty} \lambda^{\alpha} e^{-(\beta + x)\lambda}\,d\lambda
-\end{align}
+\end{aligned}
 $$
 
 We recall the Gamma identify $\Gamma(n) = \displaystyle\int_{0}^{\infty} t^{n - 1}e^{-t}\,dt$, thus
@@ -214,19 +214,25 @@ mcmc.run(jax.random.PRNGKey(42), checkout_times=checkout_times)
 mcmc.print_summary()
 ```
 
+This aligns closely enough with our analytical results above. We can also simulate predicted checkout times to verify our conclusions pertaining to the posterior predictive.
+
 ```{python}
 #| eval: true
 #| output: true
+from numpyro.infer import Predictive
 
-posterior_samples = mcmc.get_samples()["lambda"]
-posterior_mean = float(jnp.mean(posterior_samples))
-sorted_samples = jnp.sort(posterior_samples)
-hdi_lower = float(sorted_samples[int(0.025 * len(sorted_samples))])
-hdi_upper = float(sorted_samples[int(0.975 * len(sorted_samples))])
+posterior_samples = mcmc.get_samples()
 
-print(f"Posterior mean of λ: {posterior_mean:.4f}")
-print(f"95% HDI: [{hdi_lower:.4f}, {hdi_upper:.4f}]")
-print(f"Updated expected checkout time (1/λ): {1/posterior_mean:.2f} seconds")
+predictive = Predictive(checkout_model, posterior_samples=posterior_samples)
+rng = jax.random.PRNGKey(1)
+
+pred = predictive(rng, checkout_times=None)
+t_pred = pred["obs"]
+
+q = jnp.quantile(t_pred, jnp.array([0.025, 0.05, 0.5, 0.95, 0.975]))
+print("Posterior predictive checkout time (Predictive):")
+print(f"mean={t_pred.mean():.3f}, sd={t_pred.std():.3f}")
+print(f"2.5%={q[0]:.3f}, 5%={q[1]:.3f}, median={q[2]:.3f}, 95%={q[3]:.3f}, 97.5%={q[4]:.3f}")
 ```
 
 ```{python}
@@ -239,9 +245,10 @@ import matplotlib.pyplot as plt
 
 x = np.linspace(0.01, 0.3, 500)
 prior_pdf = np.exp(gamma_dist.logpdf(jnp.array(x), 1.0, scale=1/10.0))
+posterior_pdf = np.exp(gamma_dist.logpdf(jnp.array(x), 11.0, scale=1/122.3))
 
 hist_counts, bin_edges = np.histogram(
-    np.array(posterior_samples),
+    np.array(posterior_samples["lambda"]),
     bins=50,
     density=True,
 )
@@ -259,6 +266,9 @@ except ImportError:
 #| eval: true
 #| output: true
 
+posterior_sample_mean = float(jnp.mean(posterior_samples["lambda"]))
+posterior_analytical_mean = 11.0 / 122.3
+
 fig = go.Figure()
 fig.add_trace(go.Bar(
     x=bin_centers, y=hist_counts, width=bin_edges[1] - bin_edges[0],
@@ -272,9 +282,20 @@ fig.add_trace(go.Scatter(
     mode="lines", name="Prior: Γ(1, 10)",
     line=dict(color="#248DCC", width=2, dash="dash"),
 ))
+fig.add_trace(go.Scatter(
+    x=x, y=np.array(posterior_pdf),
+    mode="lines", name="Posterior (analytical): Γ(11, 122.3)",
+    line=dict(color="#67A902", width=2.5),
+))
 fig.add_vline(
-    x=posterior_mean, line_dash="dot", line_color="#67A902",
-    annotation_text=f"Posterior mean = {posterior_mean:.4f}",
+    x=posterior_sample_mean, line_dash="dot", line_color="#FD730A",
+    annotation_text=f"Sample mean = {posterior_sample_mean:.4f}",
+    annotation_font_color="#FD730A",
+)
+fig.add_vline(
+    x=posterior_analytical_mean, line_dash="solid", line_color="#67A902",
+    annotation_text=f"Analytical mean = {posterior_analytical_mean:.4f}",
+    annotation_position="top right",
     annotation_font_color="#67A902",
 )
 fig.update_layout(
@@ -308,6 +329,12 @@ sns.set_theme(style="whitegrid", font_scale=1.1, rc={
 
 fig, ax = plt.subplots(figsize=(8, 4.5))
 
+posterior_sample_mean = float(jnp.mean(posterior_samples["lambda"]))
+posterior_analytical_mean = 11.0 / 122.3
+sorted_samples = jnp.sort(posterior_samples["lambda"])
+hdi_lower = float(sorted_samples[int(0.025 * len(sorted_samples))])
+hdi_upper = float(sorted_samples[int(0.975 * len(sorted_samples))])
+
 ax.fill_between(
     x, np.array(prior_pdf), alpha=0.15, color="#248DCC",
 )
@@ -315,13 +342,15 @@ ax.plot(x, np.array(prior_pdf), color="#248DCC", linewidth=2.5,
         linestyle="--", label=r"Prior: $\Gamma(1, 10)$")
 
 sns.histplot(
-    np.array(posterior_samples), bins=50, stat="density",
+    np.array(posterior_samples["lambda"]), bins=50, stat="density",
     color="#FD730A", alpha=0.55, edgecolor="white", linewidth=0.5,
     label="Posterior samples", ax=ax,
 )
 
-ax.axvline(posterior_mean, linestyle=":", color="#67A902", linewidth=2.5,
-           label=f"Posterior mean = {posterior_mean:.4f}")
+ax.axvline(posterior_sample_mean, linestyle=":", color="#FD730A", linewidth=2.5,
+           label=f"Sample mean = {posterior_sample_mean:.4f}")
+ax.axvline(posterior_analytical_mean, linestyle="-", color="#67A902", linewidth=2.5,
+           label=f"Analytical mean = {posterior_analytical_mean:.4f}")
 ax.axvspan(hdi_lower, hdi_upper, alpha=0.08, color="#67A902",
            label=f"95% HDI [{hdi_lower:.4f}, {hdi_upper:.4f}]")
 
