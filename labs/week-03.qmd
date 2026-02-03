@@ -175,6 +175,20 @@ $$
 
 At $\alpha = 11$ and $\beta = 122.3$, the posterior mean evaluates to `{python} f"{122.3/(11 - 1):.2f}"` seconds and the posterior standard deviation evaluates to `{python} f"{np.sqrt(122.3**2 * 11 / ((11 - 1)**2 * (11 - 2))):.2f}"` seconds.
 
+Since $\lambda | \mathbf{T} \sim \Gamma\left(1 + n, 10 + \displaystyle\sum_{i=1}^{n} T_i\right)$ by conjugacy, we can also compute the conditional mean and standard deviations for $\lambda$ given observed samples. Namely,
+
+$$
+\mathbb{E}(\lambda | \mathbf{T}) = \frac{1 + n}{10 + \displaystyle\sum_{i=1}^{n} T_i}
+$$
+
+and
+
+$$
+\text{SD}(\lambda | \mathbf{T}) = \frac{\sqrt{1 + n}}{10 + \displaystyle\sum_{i=1}^{n} T_i}.
+$$
+
+The conditional mean for $\lambda$ evaluates to `{python} f"{11/122.3:.4f}"`, and the standard deviation evaluates to `{python} f"{np.sqrt(11)/122.3:.4f}"`.
+
 We can now verify this with a `numpyro` implementation.
 ```{python}
 #| eval: true
