@@ -1,0 +1,59 @@
+---
+title: "Lab Week 4. Multi-armed Bandit (A/B Testing)"
+mermaid-format: png
+---
+
+## Introduction
+
+This week's lab explores the multi-armed bandit problem—a classic framework for balancing exploration and exploitation in sequential decision-making. You'll learn to formulate A/B tests using Thompson sampling with Bayesian inference.
+
+> You are tasked with conducting a sequential A/B test of two interface designs ($i \in \{A, B\}$). Users perform a task using one of the interfaces, and we observe an outcome of either $x \in \{\text{Success}, \text{Failure}\}$.
+
+For each interface design, we model the probability of a successful interaction $p_i$ using:
+
+$$
+\begin{aligned}
+p_i &\sim \text{Beta}(1, 1) \\
+x_i &\sim \text{Bernoulli}(p_i)
+\end{aligned}
+$$
+
+## Q1. Deriving Posterior Distributions
+
+Given the following observations, derive the posterior distributions of $p_A$ and $p_B$ for design A and design B.
+
+- Design A: [Success, Failure, Success, Success, Failure]
+- Design B: [Success, Success, Success, Failure, Success]
+
+
+## Q2. Selecting the Next Design
+
+Based on the posterior distributions you derived, which design would the agent more likely select for the next user? Explain your reasoning.
+
+## Q3. Balancing Exploration and Exploitation
+
+Suppose you need to conduct this A/B test with 1000 users in a sequential manner. Explain how Thompson sampling (or bandit algorithms in general) helps balance exploration and exploitation in this context.
+
+## Q4. Thompson Sampling Implementation
+
+Implement a Thompson sampling algorithm to simulate the sequential A/B test described above using NumPyro.
+
+Requirements:
+1. Initialize Beta priors for both designs A and B as Beta(1, 1)
+2. For each of 1000 users:
+   - Sample from the posterior distributions of $p_A$ and $p_B$
+   - Select the design with the higher sampled value
+   - Simulate an outcome (Success/Failure) based on the true success probabilities: $p_A = 0.4$ and $p_B = 0.6$
+   - Update the posterior distribution for the selected design
+
+After all 1000 users, report:
+- The total number of times each design was selected
+- The total number of successes for each design
+- The final posterior distributions (alpha and beta parameters) for both designs
+
+## Deliverable
+
+Submit a zip file to eLearn containing:
+
+1. Written answers to Q1–Q3 with explanations and calculations
+2. NumPyro code for Q4 implementing Thompson sampling algorithm
