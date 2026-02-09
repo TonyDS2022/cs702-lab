@@ -61,15 +61,68 @@ $$
 
 Based on the posterior distributions you derived, which design would the agent more likely select for the next user? Explain your reasoning.
 
+::: {.callout-tip title="Answer" icon=false}
+We recall the Thompson Sampling algorithm in a 2-armed bandit problem as follows:
+
+```{.pseudocode}
+#| label: "Thompson Sampling"
+#| html-indent-size: "1.2em"
+#| html-comment-delimiter: "//"
+#| html-line-number: true
+#| html-line-number-punc: ":"
+#| html-no-end: false
+#| pdf-line-number: true
+
+\begin{algorithm}
+\caption{Thompson Sampling}
+\begin{algorithmic}
+\State Initialize $\alpha_A = 1, \beta_A = 1$  \Comment{Prior for Design A}
+\State Initialize $\alpha_B = 1, \beta_B = 1$  \Comment{Prior for Design B}
+\For{each user $t = 1, 2, \dots, T$}
+    \State Sample $\tilde{p}_A \sim \text{Beta}(\alpha_A, \beta_A)$
+    \State Sample $\tilde{p}_B \sim \text{Beta}(\alpha_B, \beta_B)$
+    \If{$\tilde{p}_A > \tilde{p}_B$}
+        \State Select design $A$ for the current user
+        \State Observe outcome $x \in \{\text{Success}, \text{Failure}\}$
+        \State Update $\alpha_A \leftarrow \alpha_A + x$, $\beta_A \leftarrow \beta_A + (1-x)$
+    \Else
+        \State Select design $B$ for the current user
+        \State Observe outcome $x \in \{\text{Success}, \text{Failure}\}$
+        \State Update $\alpha_B \leftarrow \alpha_B + x$, $\beta_B \leftarrow \beta_B + (1-x)$
+    \EndIf
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+```
+
+The agent would recommend design A if and only if the sampled values $\tilde{p}_{A} > \tilde{p}_{B}$. We have the posterior distributions
+
+$$
+p_A \sim \text{Beta}(4, 3) \text{; and} \quad p_B \sim \text{Beta}(5, 2).
+$$
+
+It is obvious that $p_B$ will likely draw a larger sample, hence the agent is more likely to select design B.
+
+:::
+
 ## Q3. Balancing Exploration and Exploitation
 
 Suppose you need to conduct this A/B test with 1000 users in a sequential manner. Explain how Thompson sampling (or bandit algorithms in general) helps balance exploration and exploitation in this context.
+
+::: {.callout-tip title="Answer" icon=false}
+Thompson sampling exploits the properties of the Beta distribution to balance between exploration and exploitation.
+
+Given an initally weakly informative prior (i.e. $\text{Beta}(1,\,1)$) for each bandits, these distributions are initialized with maximal kurtosis/uncertainty. At this stage, the algorithm is equivalent to sampling from arms with a discrete uniform probability distribution.
+
+As samples accumulate and the posteriors get updated with $\text{Beta}(1 + \text{number of successes}, 1 + \text{number of failures})$, the distributions are less kurtotic. The arms with higher empirical rate of success will be drawn with overwhelmingly higher probabilities.
+:::
 
 ## Q4. Thompson Sampling Implementation
 
 Implement a Thompson sampling algorithm to simulate the sequential A/B test described above using NumPyro.
 
 Requirements:
+
 1. Initialize Beta priors for both designs A and B as Beta(1, 1)
 2. For each of 1000 users:
    - Sample from the posterior distributions of $p_A$ and $p_B$

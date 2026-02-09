@@ -21,6 +21,15 @@ website:
           - href: exercise/exercise6-2.qmd
             text: "Exercise 6.2: A/B Testing"
 
+filters:
+  - pseudocode
+
+pseudocode:
+  caption-prefix: "Algorithm"
+  reference-prefix: "Algorithm"
+  caption-number: false
+  caption-align: "left"
+
 format:
   html:
     theme: cyborg
@@ -33,6 +42,9 @@ format:
     colorlinks: true
     geometry:
       - margin=1in
+    header-includes:
+      - \usepackage{algorithm}
+      - \usepackage{algpseudocode}
 
 execute:
   freeze: auto
