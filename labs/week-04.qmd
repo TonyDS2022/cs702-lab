@@ -135,6 +135,247 @@ After all 1000 users, report:
 - The total number of successes for each design
 - The final posterior distributions (alpha and beta parameters) for both designs
 
+::: {.callout-tip title="Answer" icon=false}
+
+```{python}
+#| eval: true
+#| output: true
+
+import jax
+import jax.numpy as jnp
+import numpy as np
+import numpyro.distributions as dist
+
+# --- Configuration ---
+N_USERS = 1000
+P_A_TRUE = 0.4
+P_B_TRUE = 0.6
+
+# --- Thompson Sampling Simulation ---
+key = jax.random.PRNGKey(42)
+
+alpha_A, beta_A = 1.0, 1.0
+alpha_B, beta_B = 1.0, 1.0
+
+# tracking arrays
+selections = []          # 'A' or 'B'
+outcomes = []            # 1 (success) or 0 (failure)
+cum_select_A = np.zeros(N_USERS)
+cum_select_B = np.zeros(N_USERS)
+cum_regret = np.zeros(N_USERS)
+
+count_A, count_B = 0, 0
+success_A, success_B = 0, 0
+regret = 0.0
+
+for t in range(N_USERS):
+    key, key_a, key_b, key_outcome = jax.random.split(key, 4)
+
+    p_a_sample = float(dist.Beta(alpha_A, beta_A).sample(key_a))
+    p_b_sample = float(dist.Beta(alpha_B, beta_B).sample(key_b))
+
+    if p_a_sample > p_b_sample:
+        chosen = "A"
+        count_A += 1
+        outcome = int(jax.random.bernoulli(key_outcome, P_A_TRUE))
+        if outcome:
+            success_A += 1
+        alpha_A += outcome
+        beta_A += 1 - outcome
+        regret += P_B_TRUE - P_A_TRUE
+    else:
+        chosen = "B"
+        count_B += 1
+        outcome = int(jax.random.bernoulli(key_outcome, P_B_TRUE))
+        if outcome:
+            success_B += 1
+        alpha_B += outcome
+        beta_B += 1 - outcome
+        # no regret when choosing the optimal arm
+
+    selections.append(chosen)
+    outcomes.append(outcome)
+    cum_select_A[t] = count_A
+    cum_select_B[t] = count_B
+    cum_regret[t] = regret
+
+# --- Summary ---
+print("=== Thompson Sampling Results (1000 users) ===\n")
+print(f"Design A:  selected {count_A:>4d} times,  {success_A:>4d} successes")
+print(f"Design B:  selected {count_B:>4d} times,  {success_B:>4d} successes")
+print(f"\nFinal posteriors:")
+print(f"  p_A | data  ~  Beta({alpha_A:.0f}, {beta_A:.0f})")
+print(f"  p_B | data  ~  Beta({alpha_B:.0f}, {beta_B:.0f})")
+
+# Pre-compute shared data for plots
+users = np.arange(1, N_USERS + 1)
+prop_B = cum_select_B / users
+
+x_pdf = np.linspace(0, 1, 300)
+prior_pdf = np.array(dist.Beta(1.0, 1.0).log_prob(jnp.linspace(0.001, 0.999, 300)))
+prior_pdf = np.exp(prior_pdf)
+post_A_pdf = np.exp(np.array(
+    dist.Beta(alpha_A, beta_A).log_prob(jnp.linspace(0.001, 0.999, 300))
+))
+post_B_pdf = np.exp(np.array(
+    dist.Beta(alpha_B, beta_B).log_prob(jnp.linspace(0.001, 0.999, 300))
+))
+```
+
+::: {.content-visible when-format="html"}
+```{python}
+#| eval: true
+#| output: true
+#| label: fig-thompson-sampling-html
+#| fig-cap: "Thompson Sampling simulation results"
+
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
+fig = make_subplots(
+    rows=3, cols=1,
+    subplot_titles=(
+        "Proportion of Design B Selections Over Time",
+        "Final Posterior Distributions vs Prior",
+        "Cumulative Regret",
+    ),
+    vertical_spacing=0.10,
+)
+
+# --- Panel 1: Selection proportion ---
+fig.add_trace(go.Scatter(
+    x=users, y=prop_B,
+    mode="lines", name="Prop. selecting B",
+    line=dict(color="#248DCC", width=2),
+), row=1, col=1)
+fig.add_hline(
+    y=0.5, line_dash="dot", line_color="grey",
+    annotation_text="50 %", annotation_font_color="grey",
+    row=1, col=1,
+)
+
+# --- Panel 2: Posterior PDFs ---
+fig.add_trace(go.Scatter(
+    x=x_pdf, y=prior_pdf,
+    mode="lines", name="Prior Beta(1,1)",
+    line=dict(color="grey", width=1.5, dash="dash"),
+), row=2, col=1)
+fig.add_trace(go.Scatter(
+    x=x_pdf, y=post_A_pdf,
+    mode="lines", name=f"Posterior A: Beta({alpha_A:.0f},{beta_A:.0f})",
+    line=dict(color="#FD730A", width=2.5),
+    fill="tozeroy", fillcolor="rgba(253,115,10,0.15)",
+), row=2, col=1)
+fig.add_trace(go.Scatter(
+    x=x_pdf, y=post_B_pdf,
+    mode="lines", name=f"Posterior B: Beta({alpha_B:.0f},{beta_B:.0f})",
+    line=dict(color="#67A902", width=2.5),
+    fill="tozeroy", fillcolor="rgba(103,169,2,0.15)",
+), row=2, col=1)
+fig.add_vline(
+    x=P_A_TRUE, line_dash="dot", line_color="#FD730A",
+    annotation_text=f"True p_A={P_A_TRUE}",
+    annotation_font_color="#FD730A",
+    row=2, col=1,
+)
+fig.add_vline(
+    x=P_B_TRUE, line_dash="dot", line_color="#67A902",
+    annotation_text=f"True p_B={P_B_TRUE}",
+    annotation_font_color="#67A902",
+    row=2, col=1,
+)
+
+# --- Panel 3: Cumulative regret ---
+fig.add_trace(go.Scatter(
+    x=users, y=cum_regret,
+    mode="lines", name="Cumulative regret",
+    line=dict(color="#E84855", width=2),
+), row=3, col=1)
+
+# --- Layout ---
+fig.update_layout(
+    height=900,
+    template="plotly_dark",
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)",
+    font=dict(color="#fff"),
+    legend=dict(font=dict(color="#fff")),
+    showlegend=True,
+)
+fig.update_xaxes(title_text="User number", row=1, col=1)
+fig.update_yaxes(title_text="Proportion", row=1, col=1)
+fig.update_xaxes(title_text="p", row=2, col=1)
+fig.update_yaxes(title_text="Density", row=2, col=1)
+fig.update_xaxes(title_text="User number", row=3, col=1)
+fig.update_yaxes(title_text="Regret", row=3, col=1)
+fig.show()
+```
+:::
+
+::: {.content-visible when-format="pdf"}
+```{python}
+#| eval: true
+#| output: true
+#| label: fig-thompson-sampling-pdf
+#| fig-cap: "Thompson Sampling simulation results"
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+sns.set_theme(style="whitegrid", font_scale=1.1, rc={
+    "axes.edgecolor": "#444444",
+    "grid.color": "#e0e0e0",
+    "grid.linestyle": "--",
+    "grid.alpha": 0.4,
+    "figure.facecolor": "white",
+})
+
+fig, axes = plt.subplots(3, 1, figsize=(8, 12))
+
+# --- Panel 1: Selection proportion ---
+ax = axes[0]
+ax.plot(users, prop_B, color="#248DCC", linewidth=2, label="Prop. selecting B")
+ax.axhline(0.5, linestyle=":", color="grey", linewidth=1)
+ax.set_xlabel("User number")
+ax.set_ylabel("Proportion")
+ax.set_title("Proportion of Design B Selections Over Time", fontweight="bold")
+ax.legend(frameon=True, fancybox=True)
+sns.despine(ax=ax, left=True)
+
+# --- Panel 2: Posterior PDFs ---
+ax = axes[1]
+ax.plot(x_pdf, prior_pdf, color="grey", linewidth=1.5, linestyle="--",
+        label="Prior Beta(1,1)")
+ax.fill_between(x_pdf, post_A_pdf, alpha=0.2, color="#FD730A")
+ax.plot(x_pdf, post_A_pdf, color="#FD730A", linewidth=2.5,
+        label=f"Posterior A: Beta({alpha_A:.0f},{beta_A:.0f})")
+ax.fill_between(x_pdf, post_B_pdf, alpha=0.2, color="#67A902")
+ax.plot(x_pdf, post_B_pdf, color="#67A902", linewidth=2.5,
+        label=f"Posterior B: Beta({alpha_B:.0f},{beta_B:.0f})")
+ax.axvline(P_A_TRUE, linestyle=":", color="#FD730A", linewidth=1.5)
+ax.axvline(P_B_TRUE, linestyle=":", color="#67A902", linewidth=1.5)
+ax.set_xlabel(r"$p$")
+ax.set_ylabel("Density")
+ax.set_title("Final Posterior Distributions vs Prior", fontweight="bold")
+ax.legend(frameon=True, fancybox=True, fontsize=9)
+sns.despine(ax=ax, left=True)
+
+# --- Panel 3: Cumulative regret ---
+ax = axes[2]
+ax.plot(users, cum_regret, color="#E84855", linewidth=2, label="Cumulative regret")
+ax.set_xlabel("User number")
+ax.set_ylabel("Regret")
+ax.set_title("Cumulative Regret", fontweight="bold")
+ax.legend(frameon=True, fancybox=True)
+sns.despine(ax=ax, left=True)
+
+plt.tight_layout()
+plt.show()
+```
+:::
+
+:::
+
 ## Deliverable
 
 Submit a zip file to eLearn containing:
