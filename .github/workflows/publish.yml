@@ -41,7 +41,7 @@ jobs:
           tinytex: true
 
       - name: Install Quarto extensions
-        run: quarto add leovan/quarto-pseudocode
+        run: quarto add --no-prompt leovan/quarto-pseudocode
 
       - name: Render site
         run: uv run quarto render
