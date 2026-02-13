@@ -120,6 +120,31 @@ Draw a state transition diagram for your MDP showing:
 
 Your diagram should help visualize how the agent and user move through the interaction.
 
+::: {.callout-tip title="Answer" icon=false}
+
+The state transition diagram below visualizes the MDP structure. States are shown as nodes, with transitions labeled by actions and probabilities. Terminal states (SUCCESS, FAILURE) are highlighted.
+
+::: {.content-visible when-format="html"}
+![](figures/mdp-state-diagram.svg){fig-align="center" width="80%"}
+
+:::
+
+::: {.content-visible when-format="pdf"}
+![](figures/mdp-state-diagram.png){fig-align="center" width="80%"}
+
+:::
+
+**Legend:**
+
+- **$S_0$**: Initial state with no preferences collected
+- **$T$**: Temperature preference collected
+- **$L$**: Lighting preference collected
+- **$TL$**: Both preferences collected (ready to actuate)
+- **✓ SUCCESS**: Terminal - user satisfied with adjustment
+- **✗ FAILURE**: Terminal - user abandoned interaction
+
+:::
+
 ## Q3. Policy Analysis
 
 Consider the following Python code that implements two policies for the smart home agent:
