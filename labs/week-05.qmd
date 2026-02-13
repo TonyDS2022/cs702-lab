@@ -1,0 +1,91 @@
+---
+title: "Lab Week 5. Markov Decision Process (MDP)"
+mermaid-format: png
+---
+
+## Introduction
+
+Read the scenario below and complete Q1–Q4. Each question builds on the previous one, progressing from model specification to policy analysis to implementation.
+
+A smart home conversational agent helps users adjust their environment by gathering preferences. The agent must collect temperature preference (warm/cool) and lighting preference (bright/dim) before making adjustments. Users may respond clearly, give unclear responses, or abandon the interaction if frustrated. The agent must decide: should it ask questions one at a time or both at once?
+
+## Q1. MDP Formulation
+
+Model the smart home agent as an MDP by specifying:
+
+- **State space**: Define the initial state, interim states (where the agent has partial information), and terminal states.
+
+- **Action space**: For each non-terminal state, list the available actions.
+
+- **Transition probabilities**: For state $s_0$ (initial state with no information) and action `ask_temperature`, specify the probability distribution over next states. Consider realistic cases where users might provide clear answers, unclear responses, or abandon.
+
+- **Reward function**: Define the reward $R(s, a, s')$ for reaching terminal states.
+
+Explain your design choices.
+
+## Q2. State Transition Diagram
+
+Draw a state transition diagram for your MDP showing:
+
+- All states (use circles or boxes)
+
+- Possible transitions between states for at least one action from the initial state
+
+- Transition probabilities on the edges
+
+Your diagram should help visualize how the agent and user move through the interaction.
+
+## Q3. Policy Analysis
+
+Consider the following Python code that implements two policies for the smart home agent:
+
+```python
+def policy_sequential(state: State) -> Action:
+    """Ask questions one at a time: temperature first, then lighting."""
+    if state == State.S0:
+        return Action.ASK_TEMPERATURE
+    elif state == State.T:
+        return Action.ASK_LIGHTING
+    elif state == State.L:
+        return Action.ASK_TEMPERATURE
+    elif state == State.TL:
+        return Action.ADJUST
+    else:
+        raise ValueError(f"No action for state {state}")
+
+
+def policy_simultaneous(state: State) -> Action:
+    """Ask both questions together when possible."""
+    if state == State.S0:
+        return Action.ASK_BOTH
+    elif state == State.T:
+        return Action.ASK_LIGHTING
+    elif state == State.L:
+        return Action.ASK_TEMPERATURE
+    elif state == State.TL:
+        return Action.ADJUST
+    else:
+        raise ValueError(f"No action for state {state}")
+```
+
+Explain the key difference between these two policies. Which policy would likely achieve a shorter average interaction length? Why? Under what conditions (consider transition probabilities) might `policy_simultaneous` have a lower success rate than `policy_sequential`?
+
+## Q4. Implementation and Simulation
+
+Following the sample code from the lecture notes ([cs702-ci/07_mdp/lecture at main · SMU-HCI/cs702-ci](https://github.com/SMU-HCI/cs702-ci/tree/main/07_mdp/lecture)), implement the smart home agent MDP based on Q1 and Q2. Use the policies from Q3, adjusting them as needed.
+
+Run simulations and analyze the results. Simulate 1000 episodes for each policy. For each policy, compute:
+
+- Success rate (percentage of episodes reaching the success state)
+- Average episode length (number of interaction turns)
+- Average cumulative reward per episode
+
+Based on the results, discuss which policy performs better overall and explain why, given your transition probabilities.
+
+## Deliverable
+
+Submit a zip file to eLearn containing:
+
+1. Written answers to Q1–Q4 with explanations and diagrams.
+
+2. Python code for Q4 implementing the MDP and policy simulations.
