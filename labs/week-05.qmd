@@ -23,6 +23,91 @@ Model the smart home agent as an MDP by specifying:
 
 Explain your design choices.
 
+::: {.callout-tip title="Answer" icon=false}
+### State Space
+
+The state space consists of discrete states representing what information has been collected:
+
+- **$S_0$**: Initial state - no preferences collected
+- **$T$**: Temperature preference collected
+- **$L$**: Lighting preference collected
+- **$TL$**: Both preferences collected (ready to actuate)
+- **SUCCESS**: Terminal state - successful interaction
+- **FAILURE**: Terminal state - user abandoned
+
+### Action Space
+
+For each non-terminal state, available actions are:
+
+| State | Available Actions |
+|-------|-------------------|
+| $S_0$ | ASK_TEMPERATURE, ASK_LIGHTING, ASK_BOTH |
+| $T$ | ASK_LIGHTING |
+| $L$ | ASK_TEMPERATURE |
+| $TL$ | ACTUATE |
+
+### Transition Probabilities
+
+From the initial state $S_0$:
+
+| Origin | Action | Destination | Probability Mass |
+|--------|--------|-------------|------------------|
+| $S_0$ | ASK_TEMPERATURE | $T$ | 0.7 |
+| $S_0$ | ASK_TEMPERATURE | $S_0$ | 0.2 |
+| $S_0$ | ASK_TEMPERATURE | FAILURE | 0.1 |
+| $S_0$ | ASK_LIGHTING | $L$ | 0.7 |
+| $S_0$ | ASK_LIGHTING | $S_0$ | 0.2 |
+| $S_0$ | ASK_LIGHTING | FAILURE | 0.1 |
+| $S_0$ | ASK_BOTH | $TL$ | 0.49 |
+| $S_0$ | ASK_BOTH | $T$ | 0.21 |
+| $S_0$ | ASK_BOTH | $L$ | 0.21 |
+| $S_0$ | ASK_BOTH | $S_0$ | 0.04 |
+| $S_0$ | ASK_BOTH | FAILURE | 0.05 |
+
+From states $T$, $L$:
+
+| Origin | Action | Destination | Probability Mass |
+|--------|--------|-------------|------------------|
+| $T$ | ASK_LIGHTING | $TL$ | 0.7 |
+| $T$ | ASK_LIGHTING | $T$ | 0.2 |
+| $T$ | ASK_LIGHTING | FAILURE | 0.1 |
+| $L$ | ASK_TEMPERATURE | $TL$ | 0.7 |
+| $L$ | ASK_TEMPERATURE | $L$ | 0.2 |
+| $L$ | ASK_TEMPERATURE | FAILURE | 0.1 |
+
+From state $TL$:
+
+| Origin | Action | Destination | Probability Mass |
+|--------|--------|-------------|------------------|
+| $TL$ | ACTUATE | SUCCESS | 0.9 |
+| $TL$ | ACTUATE | FAILURE | 0.1 |
+
+### Reward Function
+
+Using a discounting model with discount factor $\gamma = 0.95$:
+
+| Transition | Reward |
+|------------|--------|
+| Any ask action | $-\gamma^t$ (step cost) |
+| $\to$ SUCCESS | $+\gamma^t \times 10$ |
+| $\to$ FAILURE | $0$ |
+
+where $t$ is the current time step (0-indexed).
+
+### Design Choices
+
+**Discrete State Space**: The state space tracks only what information has been collected (temperature, lighting, both, or neither). This abstraction models user frustration with transition probability masses.
+
+**Transition Probabilities**: Each question has three possible outcomes:
+- Clear response (70%): Successfully collect the preference
+- Unclear response (20%): User responds but incompletely; agent retries from the same state
+- Abandon (10%): User gives up; terminal `FAILURE` state
+
+**ASK_BOTH Compound Probabilities**: When asking both questions simultaneously, outcomes are independent. The probability of getting both clear answers is $0.7 \times 0.7 = 0.49$. Partial successes (one clear, one unclear) transition to states $T$ or $L$, allowing the agent to recover.
+
+**Discounting Model**: Rather than a fixed penalty per question, rewards decay over time with $\gamma = 0.95$. This naturally encourages efficiency—earlier `SUCCESS`'s are worth more—while still allowing longer interactions if necessary. `FAILURE` receives $0$ reward, incentivizing the agent to maximize success probability rather than rush.
+:::
+
 ## Q2. State Transition Diagram
 
 Draw a state transition diagram for your MDP showing:
