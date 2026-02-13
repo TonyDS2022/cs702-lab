@@ -1,0 +1,78 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'darkMode': 'true',
+    'background': 'transparent',
+    'primaryColor': '#444',
+    'lineColor': '#888',
+    'tertiaryColor': '#444',
+    'mainBkg': 'transparent',
+    'edgeLabelBackground':'transparent'
+  },
+  'flowchart': {
+    'diagramPadding': 0,
+    'htmlLabels': true
+  },
+  'securityLevel': 'loose'
+}}%%
+flowchart TD
+    S0((S₀<br/>no info))
+    T((T<br/>temp only))
+    L((L<br/>light only))
+    TL((TL<br/>both))
+    SUCCESS{✓ SUCCESS}
+    FAILURE{✗ FAILURE}
+
+    %% transparent backgrounds for nodes, visible fills
+    classDef state fill:#444,stroke:#888,stroke-width:2px,color:#fff;
+    classDef action fill:#1a1a1a,stroke:#888,stroke-width:2px,color:#67A902;
+
+    S0:::state
+    T:::state
+    L:::state
+    TL:::state
+    SUCCESS:::state
+    FAILURE:::state
+    AT:::action
+    AL:::action
+    AB:::action
+    AL_T:::action
+    AT_L:::action
+    ACT:::action
+
+    %% 1. ASK_TEMPERATURE from S0
+    S0 --> AT[ASK_TEMPERATURE]
+    AT -->|clear 0.7| T
+    AT -->|unclear 0.2| S0
+    AT -->|abandon 0.1| FAILURE
+
+    %% 2. ASK_LIGHTING from S0
+    S0 --> AL[ASK_LIGHTING]
+    AL -->|clear 0.7| L
+    AL -->|unclear 0.2| S0
+    AL -->|abandon 0.1| FAILURE
+
+    %% 3. ASK_BOTH from S0
+    S0 --> AB[ASK_BOTH]
+    AB -->|both clear 0.49| TL
+    AB -->|partial T 0.21| T
+    AB -->|partial L 0.21| L
+    AB -->|both unclear 0.04| S0
+    AB -->|abandon 0.05| FAILURE
+
+    %% 4. ASK_LIGHTING from T
+    T --> AL_T[ASK_LIGHTING]
+    AL_T -->|clear 0.7| TL
+    AL_T -->|unclear 0.2| T
+    AL_T -->|abandon 0.1| FAILURE
+
+    %% 5. ASK_TEMPERATURE from L
+    L --> AT_L[ASK_TEMPERATURE]
+    AT_L -->|clear 0.7| TL
+    AT_L -->|unclear 0.2| L
+    AT_L -->|abandon 0.1| FAILURE
+
+    %% 6. ACTUATE from TL
+    TL --> ACT[ACTUATE]
+    ACT -->|success 0.9| SUCCESS
+    ACT -->|reject 0.1| FAILURE
