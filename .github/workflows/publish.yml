@@ -42,8 +42,8 @@ jobs:
 
       - name: Render Mermaid diagrams
         run: |
-          mmdc -i labs/figures/mdp-state-diagram.mmd -o labs/figures/mdp-state-diagram.svg -b transparent -w 1200 -H 800 --no-sandbox
-          mmdc -i labs/figures/mdp-state-diagram-light.mmd -o labs/figures/mdp-state-diagram-light.png -w 1200 -H 800 --no-sandbox
+          mmdc -i labs/figures/mdp-state-diagram.mmd -o labs/figures/mdp-state-diagram.svg -b transparent -w 1200 -H 800 -p labs/figures/puppeteer-config.json
+          mmdc -i labs/figures/mdp-state-diagram-light.mmd -o labs/figures/mdp-state-diagram-light.png -w 1200 -H 800 -p labs/figures/puppeteer-config.json
 
       - name: Install dependencies
         run: uv sync
