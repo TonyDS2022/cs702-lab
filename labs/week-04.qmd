@@ -138,8 +138,6 @@ After all 1000 users, report:
 
 ::: {.callout-tip title="Answer" icon=false}
 
-First we import the libraries and configure some constants.
-
 ```{python}
 #| eval: true
 #| output: true
