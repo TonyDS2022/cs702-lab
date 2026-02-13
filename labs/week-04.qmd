@@ -128,12 +128,102 @@ Requirements:
    - Sample from the posterior distributions of $p_A$ and $p_B$
    - Select the design with the higher sampled value
    - Simulate an outcome (Success/Failure) based on the true success probabilities: $p_A = 0.4$ and $p_B = 0.6$
-   - Update the posterior distribution for the selected design
+   - Update the posterior distribution for tgithe selected design
 
 After all 1000 users, report:
+
 - The total number of times each design was selected
 - The total number of successes for each design
 - The final posterior distributions (alpha and beta parameters) for both designs
+
+::: {.callout-tip title="Answer" icon=false}
+
+First we import the libraries and configure some constants.
+
+```{python}
+#| eval: true
+#| output: true
+
+import numpy as np
+import numpyro
+import numpyro.distributions as dist
+from jax import random
+import jax.numpy as jnp
+
+# Set random seed for reproducibility
+np.random.seed(42)
+
+# True success probabilities (ground truth)
+TRUE_P_A = 0.4
+TRUE_P_B = 0.6
+
+# Initialize prior parameters (Beta(1, 1) = Uniform prior)
+alpha_A, beta_A = 1, 1  # Prior for Design A
+alpha_B, beta_B = 1, 1  # Prior for Design B
+
+# Track selections and outcomes
+selections_A = 0
+selections_B = 0
+successes_A = 0
+successes_B = 0
+
+# Number of users
+n_users = 1000
+
+print(f"Starting Thompson Sampling with {n_users} users")
+print(f"True success rates: A={TRUE_P_A}, B={TRUE_P_B}")
+print("-" * 50)
+
+# Thompson Sampling Algorithm
+for user in range(n_users):
+    # Step 1: Sample from posterior distributions
+    # Posterior is Beta(alpha, beta) given observed data
+    sample_A = np.random.beta(alpha_A, beta_A)
+    sample_B = np.random.beta(alpha_B, beta_B)
+
+    # Step 2: Select the design with higher sampled value
+    if sample_A > sample_B:
+        selected_design = 'A'
+        selections_A += 1
+        # Simulate outcome based on TRUE_P_A (ground truth)
+        outcome = np.random.rand() < TRUE_P_A
+    else:
+        selected_design = 'B'
+        selections_B += 1
+        # Simulate outcome based on TRUE_P_B (ground truth)
+        outcome = np.random.rand() < TRUE_P_B
+
+    # Step 3: Update posterior parameters
+    if selected_design == 'A':
+        alpha_A += int(outcome)  # Add 1 if success, 0 if failure
+        beta_A += 1 - int(outcome)  # Add 1 if failure, 0 if success
+        successes_A += int(outcome)
+    else:
+        alpha_B += int(outcome)
+        beta_B += 1 - int(outcome)
+        successes_B += int(outcome)
+
+# Print results
+print("\n" + "=" * 50)
+print("THOMPSON SAMPLING RESULTS")
+print("=" * 50)
+print(f"\nDesign A:")
+print(f"  Times selected: {selections_A} ({100*selections_A/n_users:.1f}%)")
+print(f"  Total successes: {successes_A}")
+print(f"  Empirical success rate: {successes_A/selections_A:.3f}" if selections_A > 0 else "  N/A")
+print(f"  Final posterior: Beta({alpha_A}, {beta_A})")
+
+print(f"\nDesign B:")
+print(f"  Times selected: {selections_B} ({100*selections_B/n_users:.1f}%)")
+print(f"  Total successes: {successes_B}")
+print(f"  Empirical success rate: {successes_B/selections_B:.3f}" if selections_B > 0 else "  N/A")
+print(f"  Final posterior: Beta({alpha_B}, {beta_B})")
+
+print(f"\nTotal successes: {successes_A + successes_B}")
+print(f"Overall success rate: {(successes_A + successes_B)/n_users:.3f}")
+```
+
+:::
 
 ## Deliverable
 
