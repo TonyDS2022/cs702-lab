@@ -177,6 +177,70 @@ def policy_simultaneous(state: State) -> Action:
 
 Explain the key difference between these two policies. Which policy would likely achieve a shorter average interaction length? Why? Under what conditions (consider transition probabilities) might `policy_simultaneous` have a lower success rate than `policy_sequential`?
 
+::: {.callout-tip title="Answer" icon="false"}
+`policy_sequential` always execute `ASK_TEMPERATURE` and will not transition to `ASK_LIGHTING` until the temperature preference has been ascertained, whereas `policy_simultaneous` always execute `ASK_BOTH` from $S_0$ and only execute `ASK_LIGHITNG` and `ASK_TEMPERATURE` when the complement information is present.
+
+Intuitively, `policy_simultaneous` should on average result in a shorter execution cycle and a higher success rate. In reality, this would depend on the exact transition probabilities. Given the assumed probabilities specified in the answers to question 1, this can be computed explicitly as follows.
+
+### Number of Interactions before Success
+
+#### For `policy_sequential`
+
+First we compute the expected number of actions to go from $S_0$ to $T$. Conditioning on eventual success, the number of transitions to state $T$ follows a geometric distribution - $X_T \sim \text{Geometric}\left(\displaystyle\frac{7}{9}\right)$, and thus $\mathbb{E}(X_T) = \displaystyle\frac{9}{7} \approx 1.2857$.
+
+And similarly, the expected number of actions to go from $T$ to $TL$, conditioning on eventual success, is also $\displaystyle\frac{9}{7} \approx 1.2857$.
+
+Adding a final actuation step, the expected total number of steps to success is $\displaystyle\frac{9}{7} + \displaystyle\frac{9}{7} + 1 \approx 3.5714$
+
+To compute the probability of success, again we first look at the transition from $S_0$ to $T$. We observe that the end state is binary - $T$ or $\text{FAILURE}$. We let $p$ be the eventual probability of failure and solve a recursive equation:
+
+$$
+p = 0.7 \times 1 + 0.1 \times 0 + 0.2 \times p \quad \Rightarrow \quad p = \frac{7}{8} = 0.875
+$$
+
+Similarly, the probabiliy of success in the transition from $T$ to $TL$ is also $\frac{7}{8}$. The probability of both transitions succeeding assuming independence is thus $\dfrac{49}{64} \approx 0.7656$
+
+
+#### For `policy_simultaneous`
+
+The expected number of transitions to go from $S_0$ to $TL$, conditioning on eventual success, is given by
+
+$$
+\begin{aligned}
+\mathbb{E}(S_0 \rightarrow S_0) = 1 &+ \mathbb{P}(S_0 \rightarrow S_0)\,\mathbb{E}(X_{S_0 \rightarrow TL}) + \mathbb{P}(S_0 \rightarrow T)\,\mathbb{E}(X_{T \rightarrow TL}) \\
+ &+ \mathbb{P}(S_0 \rightarrow L)\,\mathbb{E}(X_{L \rightarrow TL}) + \mathbb{P}(S_0 \rightarrow TL)\cdot 0.
+\end{aligned}
+$$
+
+Substituting
+
+$$
+\begin{aligned}
+\mathbb{P}(S_0 \rightarrow S_0) &= \frac{4}{95} &
+\mathbb{P}(S_0 \rightarrow T) &= \frac{21}{95} \\
+\mathbb{P}(S_0 \rightarrow L) &= \frac{21}{95} &
+\mathbb{P}(S_0 \rightarrow TL) &= \frac{49}{95} \\
+\mathbb{E}(X_{T \rightarrow TL}) &= \frac{9}{7} &
+\mathbb{E}(X_{L \rightarrow TL}) &= \frac{9}{7}
+\end{aligned}
+$$
+
+and solving for $\mathbb{E}(S_0 \rightarrow S_0)$ yields $\mathbb{E}(S_0 \rightarrow S_0) = \dfrac{149}{91} \approx 1.637$.
+
+Incrementing by $1$ by virtue of the actuation step, the expected number of steps till success is approximately $2.637$.
+
+Like in the previous scenario, we let $p$ be the probability of eventual success, we observe
+
+$$
+p = 0.49 \times 1 + 0.21 \times 0.875 + 0.21 \times 0.875 + 0.04 \times p \quad \Rightarrow \quad p = \dfrac{0.8575}{0.96} \approx 0.8932
+$$
+
+**Conclusion:**
+
+`policy_simultaneous` achieves both shorter interactions (~$2.6$ vs ~$3.6$ steps) AND higher success rate (~$89\%$ vs ~$77\%$) with our assumed probabilities. However, `policy_simultaneous` could have a lower success rate if the abandonment probability from `ASK_BOTH` is significantly higher than from individual questions.
+
+:::
+
 ## Q4. Implementation and Simulation
 
 Following the sample code from the lecture notes ([cs702-ci/07_mdp/lecture at main · SMU-HCI/cs702-ci](https://github.com/SMU-HCI/cs702-ci/tree/main/07_mdp/lecture)), implement the smart home agent MDP based on Q1 and Q2. Use the policies from Q3, adjusting them as needed.
