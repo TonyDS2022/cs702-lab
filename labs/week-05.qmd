@@ -394,18 +394,17 @@ def run_simulation(policy, num_episodes=1000):
 
         if states[-1] == State.SUCCESS:
             successes += 1
+            total_length += episode_length
 
-        total_length += episode_length
         total_reward += reward
 
     return {
         "success_rate": successes / num_episodes,
-        "avg_episode_length": total_length / num_episodes,
-        "avg_cumulative_reward": total_reward / num_episodes
+        "avg_episode_length_given_success": total_length / successes
     }
 
 # Run simulations with more episodes for stable results
-num_episodes = 10000
+num_episodes = 100_000
 seq_results = run_simulation(policy_sequential, num_episodes)
 sim_results = run_simulation(policy_simultaneous, num_episodes)
 ```
@@ -420,8 +419,7 @@ print("=" * 60)
 print(f"\n{'Metric':<30} {'Sequential':>14} {'Simultaneous':>14}")
 print("-" * 60)
 print(f"{'Success Rate':<30} {seq_results['success_rate']*100:>13.1f}% {sim_results['success_rate']*100:>13.1f}%")
-print(f"{'Avg Episode Length':<30} {seq_results['avg_episode_length']:>14.2f} {sim_results['avg_episode_length']:>14.2f}")
-print(f"{'Avg Cumulative Reward':<30} {seq_results['avg_cumulative_reward']:>14.2f} {sim_results['avg_cumulative_reward']:>14.2f}")
+print(f"{'Avg Episode Length':<30} {seq_results['avg_episode_length_given_success']:>14.2f} {sim_results['avg_episode_length_given_success']:>14.2f}")
 print("-" * 60)
 print("\nTheoretical values (from Q3 analysis):")
 print("  Sequential: success ~76.6%, avg length ~3.57")
