@@ -253,10 +253,179 @@ Run simulations and analyze the results. Simulate 1000 episodes for each policy.
 
 Based on the results, discuss which policy performs better overall and explain why, given your transition probabilities.
 
-## Deliverable
+::: {.callout-tip title="Answer" icon="false"}
+### Implementation
 
-Submit a zip file to eLearn containing:
+The MDP implementation defines the state space, action space, transition model, and reward function from Q1. The simulation code runs episodes following each policy until reaching a terminal state.
 
-1. Written answers to Q1–Q4 with explanations and diagrams.
+```{python}
+#| label: mdp-simulation
+import random
+from enum import Enum
+from typing import Dict, List, Tuple
 
-2. Python code for Q4 implementing the MDP and policy simulations.
+class State(Enum):
+    """State space for the smart home agent MDP."""
+    S0 = "S0"       # Initial state - no preferences collected
+    T = "T"         # Temperature preference collected
+    L = "L"         # Lighting preference collected
+    TL = "TL"       # Both preferences collected (ready to actuate)
+    SUCCESS = "SUCCESS"  # Terminal - successful interaction
+    FAILURE = "FAILURE"  # Terminal - user abandoned
+
+class Action(Enum):
+    """Action space for the smart home agent MDP."""
+    ASK_TEMPERATURE = "ASK_TEMPERATURE"
+    ASK_LIGHTING = "ASK_LIGHTING"
+    ASK_BOTH = "ASK_BOTH"
+    ACTUATE = "ACTUATE"
+
+# Transition model: (state, action) -> [(next_state, probability), ...]
+TRANSITIONS: Dict[Tuple[State, Action], List[Tuple[State, float]]] = {
+    # From S0
+    (State.S0, Action.ASK_TEMPERATURE): [
+        (State.T, 0.7),      # Clear response
+        (State.S0, 0.2),     # Unclear response
+        (State.FAILURE, 0.1) # Abandon
+    ],
+    (State.S0, Action.ASK_LIGHTING): [
+        (State.L, 0.7),
+        (State.S0, 0.2),
+        (State.FAILURE, 0.1)
+    ],
+    (State.S0, Action.ASK_BOTH): [
+        (State.TL, 0.49),    # Both clear
+        (State.T, 0.21),     # Temperature clear, lighting unclear
+        (State.L, 0.21),     # Lighting clear, temperature unclear
+        (State.S0, 0.04),    # Both unclear
+        (State.FAILURE, 0.05) # At least one abandonment
+    ],
+    # From T (temperature collected, ask lighting)
+    (State.T, Action.ASK_LIGHTING): [
+        (State.TL, 0.7),
+        (State.T, 0.2),
+        (State.FAILURE, 0.1)
+    ],
+    # From L (lighting collected, ask temperature)
+    (State.L, Action.ASK_TEMPERATURE): [
+        (State.TL, 0.7),
+        (State.L, 0.2),
+        (State.FAILURE, 0.1)
+    ],
+    # From TL (both collected, actuate)
+    (State.TL, Action.ACTUATE): [
+        (State.SUCCESS, 1)
+    ]
+}
+
+# Reward values
+REWARD_SUCCESS = 10
+REWARD_FAILURE = 0
+
+def mdp_step(state: State, action: Action) -> Tuple[State, float]:
+    """Execute one step of the MDP."""
+    if state in (State.SUCCESS, State.FAILURE):
+        return state, 0
+
+    transitions = TRANSITIONS.get((state, action))
+    if transitions is None:
+        raise ValueError(f"No transition defined for state {state} and action {action}")
+
+    r = random.random()
+    cumulative = 0.0
+    for next_state, prob in transitions:
+        cumulative += prob
+        if r <= cumulative:
+            break
+
+    reward = REWARD_SUCCESS if next_state == State.SUCCESS else REWARD_FAILURE
+    return next_state, reward
+
+def policy_sequential(state: State) -> Action:
+    """Ask questions one at a time: temperature first, then lighting."""
+    if state == State.S0:
+        return Action.ASK_TEMPERATURE
+    elif state == State.T:
+        return Action.ASK_LIGHTING
+    elif state == State.L:
+        return Action.ASK_TEMPERATURE
+    elif state == State.TL:
+        return Action.ACTUATE
+    else:
+        raise ValueError(f"No action for state {state}")
+
+def policy_simultaneous(state: State) -> Action:
+    """Ask both questions together when possible."""
+    if state == State.S0:
+        return Action.ASK_BOTH
+    elif state == State.T:
+        return Action.ASK_LIGHTING
+    elif state == State.L:
+        return Action.ASK_TEMPERATURE
+    elif state == State.TL:
+        return Action.ACTUATE
+    else:
+        raise ValueError(f"No action for state {state}")
+
+def sample_episode(policy):
+    """Run a single episode until terminal state."""
+    state = State.S0
+    states_visited = [state]
+    cumulative_reward = 0
+
+    while state not in (State.SUCCESS, State.FAILURE):
+        action = policy(state)
+        next_state, reward = mdp_step(state, action)
+        cumulative_reward += reward
+        state = next_state
+        states_visited.append(state)
+
+    return states_visited, cumulative_reward
+
+def run_simulation(policy, num_episodes=1000):
+    """Run multiple episodes with a given policy."""
+    successes = 0
+    total_length = 0
+    total_reward = 0
+
+    for _ in range(num_episodes):
+        states, reward = sample_episode(policy)
+        episode_length = len(states) - 1
+
+        if states[-1] == State.SUCCESS:
+            successes += 1
+
+        total_length += episode_length
+        total_reward += reward
+
+    return {
+        "success_rate": successes / num_episodes,
+        "avg_episode_length": total_length / num_episodes,
+        "avg_cumulative_reward": total_reward / num_episodes
+    }
+
+# Run simulations with more episodes for stable results
+num_episodes = 10000
+seq_results = run_simulation(policy_sequential, num_episodes)
+sim_results = run_simulation(policy_simultaneous, num_episodes)
+```
+
+### Results
+
+```{python}
+#| label: mdp-results
+print("=" * 60)
+print(f"SIMULATION RESULTS ({num_episodes} episodes each)")
+print("=" * 60)
+print(f"\n{'Metric':<30} {'Sequential':>14} {'Simultaneous':>14}")
+print("-" * 60)
+print(f"{'Success Rate':<30} {seq_results['success_rate']*100:>13.1f}% {sim_results['success_rate']*100:>13.1f}%")
+print(f"{'Avg Episode Length':<30} {seq_results['avg_episode_length']:>14.2f} {sim_results['avg_episode_length']:>14.2f}")
+print(f"{'Avg Cumulative Reward':<30} {seq_results['avg_cumulative_reward']:>14.2f} {sim_results['avg_cumulative_reward']:>14.2f}")
+print("-" * 60)
+print("\nTheoretical values (from Q3 analysis):")
+print("  Sequential: success ~76.6%, avg length ~3.57")
+print("  Simultaneous: success ~89.3%, avg length ~2.64")
+```
+
+:::
