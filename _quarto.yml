@@ -18,6 +18,8 @@ website:
             text: "Week 4: Multi-armed Bandit (A/B Testing)"
           - href: labs/week-05.qmd
             text: "Week 5: Morkov Decision Process (MDP)"
+          - href: labs/week-06.qmd
+            text: "Week 6. Discrete Optimization"
       - text: Exercises
         menu:
           - href: exercise/exercise6-2.qmd
