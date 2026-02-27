@@ -95,6 +95,7 @@ model.constraint2 = pyo.Constraint(expr=model.x + 2 * model.y <= 9)
 ### Integer Program Translation
 
 **Variable Domains:**
+
 - $x \in \{0, 1, 2, 3, 4, 5\}$ (integer)
 - $y \in \{0, 1, 2, 3, 4, 5\}$ (integer)
 
