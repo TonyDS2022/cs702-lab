@@ -13,3 +13,4 @@ Lab assignments for CS702 Computational Interaction, MSc Computing at Singapore 
 - [Week 3: Bayesian Inference](labs/week-03.qmd)
 - [Week 4: Multi-Armed Bandits](labs/week-04.qmd)
 - [Week 5: Markov Decision Problems](labs/week-05.qmd)
+- [Week 6: Descrete Optimisations](labs/week-06.qmd)
