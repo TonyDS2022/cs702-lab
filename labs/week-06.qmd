@@ -1,0 +1,230 @@
+---
+title: "Lab Week 6. Discrete Optimization"
+mermaid-format: png
+---
+
+## Introduction
+
+Consider a scenario where you are supporting a small team designing an interactive analytics dashboard for a campus service. The team faces three UI/UX design decisions:
+
+1. How to divide limited screen space between two dashboard panels
+2. How many interactive elements to display within those panels
+3. How to arrange data-visualization widgets so the most important information occupies the most prominent screen regions
+
+In the following questions, formalize these decisions as optimization problems. Each question tests your skill in modeling design questions as mathematical optimization. In Q1, you will convert a linear program into solver-ready standard form. In Q2, you will interpret a short Pyomo snippet as an integer program. In Q3, you will model a dashboard layout decision as an assignment-style integer program.
+
+## Q1. Preparing a Linear Programming Model
+
+Imagine, the dashboard has limited screen real estate to divide between two panels: a chart panel (whose allocated width is $x$ units) and a data-table panel (whose allocated width is $y$ units). Giving more space to a panel improves its readability and usability, but the total layout area is capped and each panel must meet a minimum usability threshold.
+
+Imagine this design problem can be described with the following linear program:
+
+$$
+\begin{aligned}
+\max \quad &4x + 7y \\
+\text{s.t.} \quad &2x + y \leq 12 \\
+&3x + 2y \geq 9 \\
+&x, y \geq 0
+\end{aligned}
+$$
+
+Here, we assume that:
+
+- The objective captures the overall usability score of the layout.
+- The first constraint reflects the total screen-width limit, and
+- The second constraint ensures that enough space is allocated to meet a minimum content-legibility requirement.
+
+**Convert the linear program into standard form** (i.e., all constraints expressed as equalities using slack/surplus variables, with all variables explicitly constrained to be nonnegative).
+
+::: {.callout-tip title="Answer" icon=false}
+### Standard Form Conversion
+
+The standard form requires:
+1. All constraints as equalities (using slack/surplus variables)
+2. All variables nonnegative
+
+**Original problem:**
+$$
+\begin{aligned}
+\max \quad &4x + 7y \\
+\text{s.t.} \quad &2x + y \leq 12 \\
+&3x + 2y \geq 9 \\
+&x, y \geq 0
+\end{aligned}
+$$
+
+**Constraint 1 ($2x + y \leq 12$):** Add slack variable $s_1 \geq 0$
+$$
+2x + y + s_1 = 12
+$$
+
+**Constraint 2 ($3x + 2y \geq 9$):** Subtract surplus variable $s_2 \geq 0$
+$$
+3x + 2y - s_2 = 9
+$$
+
+**Complete Standard Form:**
+$$
+\begin{aligned}
+\max \quad &4x + 7y \\
+\text{s.t.} \quad &2x + y + s_1 = 12 \\
+&3x + 2y - s_2 = 9 \\
+&x, y, s_1, s_2 \geq 0
+\end{aligned}
+$$
+:::
+
+## Q2. Reading and Interpreting a Model from Code
+
+Next, suppose the team must decide how many interactive elements to display within each panel: $x$ chart components (e.g., trend lines, annotations) in the chart panel and $y$ filter controls (e.g., dropdowns, sliders) in the data-table panel. To keep the interface clean and testable, only a small set of integer configurations is allowed. The goal is to minimize visual complexity while meeting minimum interactivity requirements.
+
+Imagine that the following code represents this design optimization problem:
+
+```python
+model = pyo.ConcreteModel()
+model.x = pyo.Var(domain=pyo.RangeSet(0, 5, 1))
+model.y = pyo.Var(domain=pyo.RangeSet(0, 5, 1))
+model.objective = pyo.Objective(expr=3 * model.x + 5 * model.y, sense=pyo.minimize)
+model.constraint1 = pyo.Constraint(expr=2 * model.x + 4 * model.y >= 10)
+model.constraint2 = pyo.Constraint(expr=model.x + 2 * model.y <= 9)
+```
+
+**Translate the code into an integer programming problem** by stating the objective and constraints. Include the variable domains implied by `pyo.RangeSet` (note that `pyo.RangeSet` is inclusive of both the lower and upper bounds).
+
+::: {.callout-tip title="Answer" icon=false}
+### Integer Program Translation
+
+**Variable Domains:**
+- $x \in \{0, 1, 2, 3, 4, 5\}$ (integer)
+- $y \in \{0, 1, 2, 3, 4, 5\}$ (integer)
+
+**Objective:**
+$$
+\min 3x + 5y
+$$
+
+**Constraints:**
+1. $2x + 4y \geq 10$
+2. $x + 2y \leq 9$
+
+**Complete Integer Program:**
+$$
+\begin{aligned}
+\min \quad &3x + 5y \\
+\text{s.t.} \quad &2x + 4y \geq 10 \\
+&x + 2y \leq 9 \\
+&x, y \in \{0, 1, 2, 3, 4, 5\}
+\end{aligned}
+$$
+:::
+
+## Q3. Modeling the UI Layout Decision Problem
+
+With the panel layout and element counts decided, the team turns to the final design question: which data-visualization widgets should occupy the most prominent screen regions so that users can find critical information at a glance? You will model this placement decision as an assignment-style integer program.
+
+The dashboard interface has 8 priority regions arranged from left to right. Region 1 is the most prominent (top-left corner) and region 8 is the least visible (bottom-right corner). There are 8 data-visualization widgets to place, each displaying a different type of information. Index the widgets as $i = 1, \ldots, 8$ and the regions as $j = 1, \ldots, 8$.
+
+Let $x_{ij}$ be a binary decision variable equal to 1 if widget $i$ is assigned to region $j$, and 0 otherwise. Define the **attention cost** of placing widget $i$ in region $j$ as
+
+$$
+c_{ij} = v_i \cdot j
+$$
+
+where $v_i$ is the importance of widget $i$ for the user's tasks. A smaller region index means higher visual prominence, so placing a high-importance widget in a less prominent region (higher index) creates a larger cost.
+
+**Write an integer program** that minimizes the total attention cost across all widget–region assignments. State the objective function, all constraints (each widget must be placed in exactly one region, and each region must hold exactly one widget), and the variable domains.
+
+::: {.callout-tip title="Answer" icon=false}
+### Assignment Integer Program
+
+**Decision Variables:**
+$$
+x_{ij} \in \{0, 1\} \quad \forall i \in \{1,\ldots,8\}, j \in \{1,\ldots,8\}
+$$
+
+**Objective Function:**
+$$
+\begin{aligned}
+\min \quad &\sum_{i=1}^{8} \sum_{j=1}^{8} c_{ij} x_{ij} \\
+= \quad &\sum_{i=1}^{8} \sum_{j=1}^{8} v_i \cdot j \cdot x_{ij}
+\end{aligned}
+$$
+
+**Constraints:**
+
+1. Each widget assigned to exactly one region:
+$$
+\sum_{j=1}^{8} x_{ij} = 1 \quad \forall i \in \{1,\ldots,8\}
+$$
+
+2. Each region holds exactly one widget:
+$$
+\sum_{i=1}^{8} x_{ij} = 1 \quad \forall j \in \{1,\ldots,8\}
+$$
+
+This is a classic **assignment problem**.
+:::
+
+## Q4. Implementation
+
+Implement the integer program that you formulated in Q3. Use Pyomo to define the model, choose appropriate importance values for the widgets, implement the objective function and constraints, solve using an appropriate solver, and display the optimal widget-to-region assignment along with the total attention cost.
+
+```{python}
+# Install pyomo and a solver if needed
+# !pip install pyomo
+# !pip install highspy  # or use another solver
+```
+
+```{python}
+import pyomo.environ as pyo
+
+# Define widget importance values (v_i for i = 1 to 8)
+# Choose appropriate importance values for 8 different widgets
+v = [8, 7, 6, 5, 4, 3, 2, 1]  # Example: widget 1 is most important
+
+# Create the model
+model = pyo.ConcreteModel()
+
+# Index sets
+model.I = pyo.RangeSet(1, 8)  # Widgets
+model.J = pyo.RangeSet(1, 8)  # Regions
+
+# Decision variables
+model.x = pyo.Var(model.I, model.J, domain=pyo.Binary)
+
+# Objective function: minimize total attention cost
+# c_ij = v_i * j
+def obj_rule(model):
+    return sum(v[i-1] * j * model.x[i, j] for i in model.I for j in model.J)
+
+model.objective = pyo.Objective(rule=obj_rule)
+
+# Constraints
+# Each widget must be assigned to exactly one region
+def one_region_per_widget(model, i):
+    return sum(model.x[i, j] for j in model.J) == 1
+
+model.widget_constraint = pyo.Constraint(model.I, rule=one_region_per_widget)
+
+# Each region must hold exactly one widget
+def one_widget_per_region(model, j):
+    return sum(model.x[i, j] for i in model.I) == 1
+
+model.region_constraint = pyo.Constraint(model.J, rule=one_widget_per_region)
+
+# Solve the model
+solver = pyo.SolverFactory('highs')
+result = solver.solve(model)
+
+# Display results
+print(f"Solver Status: {result.solver.status}")
+print(f"Termination Condition: {result.solver.termination_condition}")
+print(f"\nOptimal Widget-to-Region Assignment:")
+
+for i in model.I:
+    for j in model.J:
+        if pyo.value(model.x[i, j]) > 0.5:  # Due to binary, check > 0.5
+            print(f"  Widget {i} (importance={v[i-1]}) -> Region {j}")
+
+print(f"\nTotal Attention Cost: {pyo.value(model.objective)}")
+```

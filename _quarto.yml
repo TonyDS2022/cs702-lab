@@ -22,6 +22,8 @@ website:
         menu:
           - href: exercise/exercise6-2.qmd
             text: "Exercise 6.2: A/B Testing"
+          - href: exercise/exercise8-1.qmd
+            text: "Exercise 8.1: Linear Programming"
 
 filters:
   - pseudocode

@@ -1,0 +1,67 @@
+# Exercise 8.1: Linear Programming
+
+## Introduction
+
+We have seen how to use Pyomo, a Python library to model and solve optimization problems. Let's practice how to use this library by going through a simple intelligent UI planning problem. Consider the following scenario:
+
+You are building an intelligent user interface for a course project. You have time to build two types of adaptive UI components:
+
+- **Component p**: Adaptive hints / next-step suggestions (e.g., contextual tips, recommended next actions, micro-guidance).
+- **Component q**: Adaptive ranking / layout (e.g., re-ordering items, ranking results, personalized feed ordering).
+
+To build these components, you need two limited development resources:
+
+- **m**: Engineering effort units (e.g., implementation + integration work)
+- **n**: UI/content tuning effort units (e.g., copywriting, design iterations, rule tuning)
+
+And we know the following:
+
+- To build 1 unit of component p, you need 2 units of effort m and 4 units of effort n.
+- To build 1 unit of component q, you need 4 units of effort m and 3 units of effort n.
+- You have 60 units of effort m and 80 units of effort n available.
+- The expected impact of 1 unit of component p is 150 points (e.g., expected improvement in user performance or satisfaction).
+- The expected impact of 1 unit of component q is 200 points.
+
+Let x be the number of units of component p that you build. And let y be the number of units of component q that you build. How much of component p and component q should you build to maximize the total expected impact?
+
+## Q1. Modeling the Optimization Problem
+
+Answer the following:
+
+1. What are the design variables for this problem?
+2. What is the objective function?
+3. Are there any constraints? If so, describe them.
+
+::: {.callout-tip title="answer" icon="false"}
+
+The optimization problem is formalized as follows:
+
+$$
+\begin{aligned}
+\max_{x, y}\;& 150x + 200y &\\
+\text{s. t. }& 2x + 4y &\leq 60\\
+& 4x + 3y &\leq 80\\
+& x &\geq 0\\
+& y &\geq 0
+\end{aligned}
+$$
+
+:::
+
+## Q2. Implementation
+
+Using your answer for Q1, translate this linear programming problem into a Pyomo code. Report the optimal values for the design variables and the profit.
+
+**Hint**: You could check [tutorials like this one](https://jckantor.github.io/ND-Pyomo-Cookbook/notebooks/02.01-Production-Models-with-Linear-Constraints.html#).
+
+## Q3. Standard Form
+
+Write down the problem above in a standard form.
+
+## Lecture Note
+
+[📖8. Optimization for Decision Making](labs/week-08.qmd)
+
+## Reference
+
+Jeffrey C. Kantor (2022) ND Pyomo Cookbook ([link](https://jckantor.github.io/ND-Pyomo-Cookbook/README.html))
