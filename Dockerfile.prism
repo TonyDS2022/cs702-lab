@@ -1,0 +1,25 @@
+FROM alpine:latest
+
+# Install Java and required dependencies
+RUN apk add --no-progress \
+    openjdk17-jre \
+    curl \
+    bash \
+    libstdc++ \
+    musl \
+    libc6-compat
+
+# Set working directory
+WORKDIR /tmp
+
+# Download and extract PRISM
+RUN curl -L -o prism.tar.gz https://www.prismmodelchecker.org/dl/prism-4.10-linux64-arm.tar.gz && \
+    tar -xzf prism.tar.gz && \
+    rm prism.tar.gz
+
+# Set PRISM environment
+ENV PRISM_DIR=/tmp/prism-4.10-linux64-arm
+ENV LD_LIBRARY_PATH=/tmp/prism-4.10-linux64-arm/lib
+ENV PATH="/tmp/prism-4.10-linux64-arm/bin:${PATH}"
+
+WORKDIR /workspace
