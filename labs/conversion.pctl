@@ -1,0 +1,16 @@
+// PCTL properties for conversational agent conversion DTMC
+
+// Q3.1: The probability of eventually converting
+P=? [F "converted"]
+
+// Q3.2: The probability of converting within 10 steps
+P=? [F<=10 "converted"]
+
+// Q3.3: The probability of never reaching abandoned (i.e., reaching converted without visiting abandoned)
+// This is the probability of a path where converted is reached and abandoned is never visited
+// Alternative: P=? [G !"abandoned"] would check for all paths never reaching abandoned
+// For eventually reaching converted while never visiting abandoned:
+P=? [!"abandoned" U "converted"]
+
+// Q3.4: A specification that checks whether the probability of eventually converting is at least 0.6
+P>=0.6 [F "converted"]

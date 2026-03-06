@@ -1,0 +1,111 @@
+PRISM
+=====
+
+Version: 4.10
+Date: Wed Mar 04 13:55:13 GMT 2026
+Hostname: 3d3a93678e55
+Memory limits: cudd=1g, java(heap)=1.9g
+Command line: prism -ex labs/conversion.pm labs/conversion.pctl
+
+Parsing PRISM model file "labs/conversion.pm"...
+
+Type:        DTMC
+Modules:     conversion
+Actions:     []
+Variables:   s
+Labels:      "browsing" "engaged" "converted" "abandoned"
+
+Parsing properties file "labs/conversion.pctl"...
+
+4 properties:
+(1) P=? [ F "converted" ]
+(2) P=? [ F<=10 "converted" ]
+(3) P=? [ !"abandoned" U "converted" ]
+(4) P>=0.6 [ F "converted" ]
+
+---------------------------------------------------------------------
+
+Model checking: P=? [ F "converted" ]
+
+Building model (engine:explicit)...
+
+Computing reachable states... 4 states
+Reachable states exploration and model construction done in 0.003 secs.
+Sorting reachable states list...
+
+Time for model construction: 0.013 seconds.
+
+Type:        DTMC
+States:      4 (1 initial)
+Transitions: 7
+
+Starting probabilistic reachability...
+Calculating predecessor relation for discrete-time Markov chain...  done (0.001 seconds)
+Starting Prob0...
+Prob0 took 0.001 seconds.
+Starting Prob1...
+Prob1 took 0.0 seconds.
+target=1, yes=1, no=1, maybe=2
+Starting value iteration (with Jacobi)...
+Value iteration (with Jacobi) took 21 iterations, 105 multiplications and 0.001 seconds.
+Probabilistic reachability took 0.006 seconds.
+
+Value in the initial state: 0.5263154557716792
+
+Time for model checking: 0.008 seconds.
+
+Result: 0.5263154557716792 (+/- 2.5361340166297935E-6 estimated; rel err 4.818657686788498E-6)
+
+---------------------------------------------------------------------
+
+Model checking: P=? [ F<=10 "converted" ]
+
+Starting bounded probabilistic reachability...
+Bounded probabilistic reachability took 10 iterations and 0.001 seconds.
+
+Value in the initial state: 0.525896704
+
+Time for model checking: 0.001 seconds.
+
+Result: 0.525896704 (exact floating point)
+
+---------------------------------------------------------------------
+
+Model checking: P=? [ !"abandoned" U "converted" ]
+
+Starting probabilistic reachability...
+Starting Prob0...
+Prob0 took 0.0 seconds.
+Starting Prob1...
+Prob1 took 0.0 seconds.
+target=1, yes=1, no=1, maybe=2
+Starting value iteration (with Jacobi)...
+Value iteration (with Jacobi) took 21 iterations, 105 multiplications and 0.0 seconds.
+Probabilistic reachability took 0.0 seconds.
+
+Value in the initial state: 0.5263154557716792
+
+Time for model checking: 0.001 seconds.
+
+Result: 0.5263154557716792 (+/- 2.5361340166297935E-6 estimated; rel err 4.818657686788498E-6)
+
+---------------------------------------------------------------------
+
+Model checking: P>=0.6 [ F "converted" ]
+
+Starting probabilistic reachability...
+Starting Prob0...
+Prob0 took 0.0 seconds.
+Starting Prob1...
+Prob1 took 0.0 seconds.
+target=1, yes=1, no=1, maybe=2
+Starting value iteration (with Jacobi)...
+Value iteration (with Jacobi) took 21 iterations, 105 multiplications and 0.0 seconds.
+Probabilistic reachability took 0.0 seconds.
+
+Property satisfied in 0 of 1 initial states.
+
+Time for model checking: 0.001 seconds.
+
+Result: false
+

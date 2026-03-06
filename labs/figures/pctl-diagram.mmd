@@ -1,0 +1,13 @@
+graph LR
+    browsing["browsing"]
+    engaged["engaged"]
+    converted["converted"]
+    abandoned["abandoned"]
+
+    browsing -->|p1| engaged
+    browsing -->|p2| abandoned
+    engaged -->|p3| converted
+    engaged -->|p4| abandoned
+    engaged -->|p5| browsing
+    converted -->|p6| converted
+    abandoned -->|p7| abandoned
