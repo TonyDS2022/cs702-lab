@@ -1,0 +1,81 @@
+---
+title: "Lab Week 8. Dynamical Systems"
+---
+
+## Introduction
+
+Imagine designing a Human-Robot Interaction (HRI) system for a museum guide robot that accompanies a visually impaired visitor. The robot must maintain an appropriate distance---close enough to provide guidance but far enough to avoid collisions. The interaction unfolds continuously: the robot senses the user's position, computes the error from a desired distance, and adjusts its movement accordingly. In the following questions, you will apply concepts from dynamical systems and feedback control to model, analyze, and implement this continuous interaction.
+
+## Q1. Solving a First-Order ODE
+
+When the museum guide robot first detects a new visitor, it must approach from its current position and settle at a target following-distance. Suppose the robot's approach behavior is modeled by the following first-order ODE:
+
+$$
+\dot{x} = k(r - x)
+$$
+
+where $x(t)$ is the distance between the robot and the user at time $t$, and $r$ is the desired following distance (the setpoint). Solve the ODE analytically to find $x(t)$.
+
+**Hint:** This is a first-order linear ODE. Try substituting $y(t) = x(t) - r$ to simplify it into the form $\dot{y} = -ky$, which has a well-known exponential solution. Once you've solved for $y(t)$, substitute back to find $x(t)$. Denote the arbitrary constant as $C$.
+
+::: {.callout-tip title="Answer" icon=false}
+### Q1: Solving a First-Order ODE
+
+:::
+
+## Q2. Initial Value Problem
+
+Suppose the robot starts at an initial distance of $x(0) = 8.0$ meters from the user. Let $r = 2.0$ meters and $k = 1.5$ be the gain parameter.
+
+Use the initial condition to find the particular solution $x(t)$ from your general solution in Q1.
+
+Using this particular solution, compute $x(1)$ and $x(2)$. At approximately what time does the robot come within 0.1 meters of the setpoint (i.e., when does $|x(t) - r| < 0.1$)?
+
+::: {.callout-tip title="Answer" icon=false}
+### Q2: Initial Value Problem
+
+:::
+
+## Q3. Analyzing a Proportional Controller
+
+Now suppose the visitor is moving, so the robot must actively regulate its distance. The robot uses a proportional (P) controller to maintain the setpoint $r = 2.0$ meters. At a particular moment, the measured distance between the robot and the user is $x = 3.5$ meters. The proportional gain is $k_p = 1.5$.
+
+Compute the error $e$ and the control input $u$ that the P controller produces at this instant. Explain the physical meaning of the sign of $u$---what action does the robot take?
+
+In the Euler discretization of the system $x_{t+1} = x_t + \Delta t \cdot \dot{x}_t$, explain how the choice of $\Delta t$ affects the accuracy of the simulation. What happens if $\Delta t$ is too large?
+
+::: {.callout-tip title="Answer" icon=false}
+### Q3: Analyzing a Proportional Controller
+
+:::
+
+## Q4. P Controller Simulation
+
+Implement a simulation of the museum guide robot's distance-keeping behavior using a P controller. The robot must maintain a distance of $r = 2.0$ meters from the user. Use the following setup:
+
+- The system dynamics follow $\dot{x} = u$, where $u$ is the control input produced by the PI controller, and $x$ is the distance between the robot and the user.
+- Use Euler's method to discretize the system: $x_{t+1} = x_t + \Delta t \cdot u_t$.
+- Set $\Delta t = 0.05$, $k_p = 0.8$, $k_i = 0.3$, and simulate for 200 time steps.
+- The initial distance is $x(0) = 8.0$ meters. The setpoint is $r = 2.0$ meters.
+
+Your code should:
+
+- Implement the `PController` class (with `Kp` and a `calc_input` method).
+- Run the simulation loop, recording $x(t)$ at each step.
+- Plot $x(t)$ over time, including a horizontal dashed line at the setpoint $r = 2.0$.
+
+::: {.callout-tip title="Answer" icon=false}
+### Q4: P Controller Simulation
+
+:::
+
+## Deliverable
+
+Submit a zip file to eLearn containing:
+
+- Written answers to Q1--Q3 with explanations and calculations.
+- Python code for Q4 implementing the P controller simulation and the resulting plot.
+
+## References
+
+- [11. Dynamical Systems](https://smuhci.notion.site/11-Dynamical-Systems-4ec36cae2e40469a85f5aca077a7d1de)
