@@ -161,7 +161,6 @@ Your code should:
 
 ```{python}
 import numpy as np
-import matplotlib.pyplot as plt
 
 class PController:
     """Proportional controller."""
@@ -191,19 +190,77 @@ time = np.arange(n_steps + 1) * dt
 for t in range(n_steps):
     u = controller.calc_input(r, x[t])
     x[t + 1] = x[t] + dt * u
+```
 
-# Plot
-plt.figure(figsize=(10, 5))
-plt.plot(time, x, label="Distance x(t)", linewidth=2)
-plt.axhline(y=r, color="red", linestyle="--", label=f"Setpoint r = {r}")
-plt.xlabel("Time (s)")
-plt.ylabel("Distance (m)")
-plt.title("P Controller Simulation: Museum Guide Robot")
-plt.legend()
-plt.grid(True, alpha=0.3)
+::: {.content-visible when-format="html"}
+```{python}
+#| eval: true
+#| output: true
+
+import plotly.graph_objects as go
+
+fig = go.Figure()
+
+fig.add_trace(go.Scatter(
+    x=time, y=x,
+    mode="lines",
+    name="Distance x(t)",
+    line=dict(color="#FD730A", width=2.5),
+))
+
+fig.add_hline(
+    y=r, line_dash="dash", line_color="#67A902", line_width=2,
+    annotation_text=f"Setpoint r = {r}",
+    annotation_font_color="#67A902",
+    annotation_position="top right",
+)
+
+fig.update_layout(
+    template="plotly_dark",
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)",
+    xaxis_title="Time (s)",
+    yaxis_title="Distance (m)",
+    title="P Controller Simulation: Museum Guide Robot",
+    font=dict(color="#fff"),
+    legend=dict(font=dict(color="#fff")),
+)
+
+fig.show()
+```
+:::
+
+::: {.content-visible when-format="pdf"}
+```{python}
+#| eval: true
+#| output: true
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+sns.set_theme(style="whitegrid", font_scale=1.1, rc={
+    "axes.edgecolor": "#444444",
+    "grid.color": "#e0e0e0",
+    "grid.linestyle": "--",
+    "grid.alpha": 0.4,
+    "figure.facecolor": "white",
+})
+
+fig, ax = plt.subplots(figsize=(10, 5))
+
+ax.plot(time, x, color="#FD730A", linewidth=2.5, label="Distance x(t)")
+ax.axhline(y=r, color="#67A902", linestyle="--", linewidth=2, label=f"Setpoint r = {r}")
+
+ax.set_xlabel("Time (s)", fontsize=12)
+ax.set_ylabel("Distance (m)", fontsize=12)
+ax.set_title("P Controller Simulation: Museum Guide Robot",
+             fontsize=14, fontweight="bold", color="#FD730A")
+ax.legend(frameon=True, fancybox=True, shadow=True, fontsize=10)
+sns.despine(left=True)
 plt.tight_layout()
 plt.show()
 ```
+:::
 
 The plot shows the robot's distance from the user over time. With the P controller ($k_p = 0.8$), the distance exponentially decays from the initial 8.0 m toward the setpoint of 2.0 m. The response is smooth with no overshoot, characteristic of a well-tuned proportional controller for a first-order system.
 :::
