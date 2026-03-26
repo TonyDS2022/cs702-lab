@@ -21,6 +21,31 @@ where $x(t)$ is the distance between the robot and the user at time $t$, and $r$
 ::: {.callout-tip title="Answer" icon=false}
 ### Q1: Solving a First-Order ODE
 
+Starting with the ODE:
+
+$$
+\dot{x} = k(r - x)
+$$
+
+**Substitution:** Let $y(t) = x(t) - r$, so $\dot{y} = \dot{x}$. Substituting:
+
+$$
+\dot{y} = k(r - (y + r)) = -ky
+$$
+
+This is the standard first-order linear ODE with exponential solution:
+
+$$
+y(t) = Ce^{-kt}
+$$
+
+**Substituting back** $x(t) = y(t) + r$:
+
+$$
+\boxed{x(t) = r + Ce^{-kt}}
+$$
+
+where $C$ is an arbitrary constant determined by initial conditions. The solution shows that $x(t)$ exponentially approaches the setpoint $r$ over time, with rate governed by $k$.
 :::
 
 ## Q2. Initial Value Problem
@@ -34,6 +59,49 @@ Using this particular solution, compute $x(1)$ and $x(2)$. At approximately what
 ::: {.callout-tip title="Answer" icon=false}
 ### Q2: Initial Value Problem
 
+**Finding C from the initial condition:**
+
+From Q1, $x(t) = r + Ce^{-kt}$. With $x(0) = 8.0$, $r = 2.0$, $k = 1.5$:
+
+$$
+8.0 = 2.0 + Ce^{0} \implies C = 6.0
+$$
+
+**Particular solution:**
+
+$$
+x(t) = 2.0 + 6.0\,e^{-1.5t}
+$$
+
+**Computing $x(1)$:**
+
+$$
+x(1) = 2.0 + 6.0\,e^{-1.5} = 2.0 + 6.0 \times 0.2231 \approx 3.339
+$$
+
+**Computing $x(2)$:**
+
+$$
+x(2) = 2.0 + 6.0\,e^{-3.0} = 2.0 + 6.0 \times 0.0498 \approx 2.299
+$$
+
+**Time to come within 0.1 m of the setpoint:**
+
+We need $|x(t) - r| < 0.1$, i.e., $6.0\,e^{-1.5t} < 0.1$:
+
+$$
+e^{-1.5t} < \frac{0.1}{6.0} = 0.01\overline{6}
+$$
+
+$$
+-1.5t < \ln(0.01\overline{6}) \approx -4.094
+$$
+
+$$
+t > \frac{4.094}{1.5} \approx 2.73 \text{ seconds}
+$$
+
+The robot comes within 0.1 meters of the setpoint at approximately **$t \approx 2.73$ seconds**.
 :::
 
 ## Q3. Analyzing a Proportional Controller
@@ -47,6 +115,30 @@ In the Euler discretization of the system $x_{t+1} = x_t + \Delta t \cdot \dot{x
 ::: {.callout-tip title="Answer" icon=false}
 ### Q3: Analyzing a Proportional Controller
 
+**Error and control input:**
+
+The error is the difference between the setpoint and the measured distance:
+
+$$
+e = r - x = 2.0 - 3.5 = -1.5
+$$
+
+The P controller output:
+
+$$
+u = k_p \cdot e = 1.5 \times (-1.5) = -2.25
+$$
+
+**Physical meaning of the sign of $u$:** The negative sign of $u$ means the robot should *decrease* the distance — i.e., move **toward** the user. Since the current distance (3.5 m) exceeds the desired distance (2.0 m), the robot is too far away and needs to close the gap. The magnitude (2.25) indicates how aggressively it should approach.
+
+**Effect of $\Delta t$ on Euler discretization:**
+
+In the Euler method $x_{t+1} = x_t + \Delta t \cdot \dot{x}_t$, the choice of $\Delta t$ directly affects accuracy:
+
+- **Small $\Delta t$**: The discrete approximation closely follows the true continuous trajectory, giving high accuracy at the cost of more computation steps.
+- **Large $\Delta t$**: The approximation becomes coarser. If $\Delta t$ is too large, the simulation can **overshoot** the setpoint — the robot jumps past the desired distance, causing oscillations or even divergence (numerical instability). In the worst case, the system becomes unstable and the error grows without bound.
+
+As a rule of thumb, $\Delta t$ should be small relative to the system's time constant ($1/k$) to maintain stability.
 :::
 
 ## Q4. P Controller Simulation
@@ -67,6 +159,53 @@ Your code should:
 ::: {.callout-tip title="Answer" icon=false}
 ### Q4: P Controller Simulation
 
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+
+class PController:
+    """Proportional controller."""
+    def __init__(self, Kp: float):
+        self.Kp = Kp
+
+    def calc_input(self, setpoint: float, measurement: float) -> float:
+        """Calculate the control input u = Kp * (setpoint - measurement)."""
+        error = setpoint - measurement
+        return self.Kp * error
+
+
+# Simulation parameters
+dt = 0.05          # Time step
+Kp = 0.8           # Proportional gain
+n_steps = 200      # Number of time steps
+x0 = 8.0           # Initial distance (meters)
+r = 2.0            # Setpoint (meters)
+
+# Initialise
+controller = PController(Kp)
+x = np.zeros(n_steps + 1)
+x[0] = x0
+time = np.arange(n_steps + 1) * dt
+
+# Euler simulation loop
+for t in range(n_steps):
+    u = controller.calc_input(r, x[t])
+    x[t + 1] = x[t] + dt * u
+
+# Plot
+plt.figure(figsize=(10, 5))
+plt.plot(time, x, label="Distance x(t)", linewidth=2)
+plt.axhline(y=r, color="red", linestyle="--", label=f"Setpoint r = {r}")
+plt.xlabel("Time (s)")
+plt.ylabel("Distance (m)")
+plt.title("P Controller Simulation: Museum Guide Robot")
+plt.legend()
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()
+```
+
+The plot shows the robot's distance from the user over time. With the P controller ($k_p = 0.8$), the distance exponentially decays from the initial 8.0 m toward the setpoint of 2.0 m. The response is smooth with no overshoot, characteristic of a well-tuned proportional controller for a first-order system.
 :::
 
 ## Deliverable
