@@ -16,3 +16,4 @@ Lab assignments for CS702 Computational Interaction, MSc Computing at Singapore 
 - [Week 6: Descrete Optimisations](labs/week-06.qmd)
 - [Week 7: PCTL](labs/week-07.qmd)
 - [Week 8: Dynamical Systems](labs/week-08.qmd)
+- [Week 10: State Space Model](labs/week-10.qmd)

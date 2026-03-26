@@ -1,0 +1,97 @@
+---
+title: "Lab Week 10. State Space Model"
+---
+
+## Introduction
+
+Parkinson's disease (PD) causes involuntary hand tremors (typically 3--8 Hz) that impair everyday tasks like eating, writing, and using devices. One non-invasive approach to assist ones with such tremors is a wearable vibration absorber, a device that mechanically counteracts tremor. Faizan & Muzammil (2020) demonstrated this by modeling the hand as a mass-spring-damper system and attaching a tuned absorber to the forearm, reducing wrist tremor amplitude by approximately 57%.
+
+In this lab activity, we simplify the problem and model the motion of hand and wrist in 1D:
+
+$$
+m\,\ddot{\theta} + b\,\dot{\theta} + k\,\theta = \tau_{tremor}(t)
+$$
+
+where $\theta$ is wrist angular displacement, $m$ is rotational inertia, $b$ is passive damping, $k$ is joint stiffness, and $\tau_{tremor}(t)$ is involuntary tremor torque. Representative parameters:
+
+- $m = 0.0024 \text{ kg} \cdot \text{m}^2$, $b = 0.01 \text{N} \cdot \text{m} \cdot \text{s} / \text{rad}$, and $k = 0.16 \text{N} \cdot \text{m} / \text{rad}$.
+- Tremor: $\tau_{tremor}(t) = 0.005\sin(2\pi \cdot 5\cdot t) \text{N} \cdot \text{m}$
+
+## Q1. Deriving a State Space Form
+
+Define the state vector as $\mathbf{x} = [\theta,\; \dot{\theta}]^\intercal$ and let $u = \tau_{tremor}$. Starting from the equation of motion defined in the introduction, derive the continuous time state space matrices $A$ and $B$ in the process equation (state equation):
+
+$$
+\dot{\mathbf{x}} = A\,\mathbf{x} + B\,u
+$$
+
+Write your answer both symbolically (in terms of $m$, $b$, $k$) and numerically using the parameter values given above.
+
+::: {.callout-tip title="Answer" icon=false}
+### Q1: Deriving a State Space Form
+
+:::
+
+## Q2. Output Matrix
+
+In a wearable tremor suppression device, sensors measure the patient's wrist motion.
+
+- If the sensor is a gyroscope that measures angular velocity $\dot{\theta}$ only, what does the output matrix $C$ in the measurement equation (output equation) $y = C\,\mathbf{x}$ look like?
+- If instead the sensor can measure angular displacement $\theta$ (e.g., using distance sensor), how does $C$ change?
+
+::: {.callout-tip title="Answer" icon=false}
+### Q2: Output Matrix
+
+:::
+
+## Q3. Reachability and Observability
+
+Using your state-space matrices from Q1 and your output matrix from Q2:
+
+Compute the reachability matrix:
+
+$$
+\mathcal{R} = \begin{bmatrix} B & A B \end{bmatrix}
+$$
+
+Is the system reachable? Justify by checking the rank of $\mathcal{R}$.
+
+Using the output matrix $C$ from Q2 (measuring $\theta$), compute the observability matrix:
+
+$$
+\mathcal{O} = \begin{bmatrix} C \\ CA \end{bmatrix}
+$$
+
+Is the system observable? Justify by checking the rank of $\mathcal{O}$.
+
+In one or two sentences, explain what reachability and observability mean physically for this wearable tremor suppression device. Why should a designer care about these properties?
+
+::: {.callout-tip title="Answer" icon=false}
+### Q3: Reachability and Observability
+
+:::
+
+## Q4. Simulation
+
+Using Python and `scipy.signal`, simulate the wrist's response to a sustained Parkinsonian tremor.
+
+- Build the state-space system using matrices $A, B, C$ from your answers in Q1 and Q2 (measuring $\theta$).
+- Simulate over 3 seconds using `scipy.signal.lsim` with zero initial conditions and the tremor input $\tau_{tremor}(t)$.
+- Plot wrist angular displacement $\theta(t)$ in degrees versus time. Briefly discuss whether the steady-state amplitude appears large or small, and explain why.
+
+::: {.callout-tip title="Answer" icon=false}
+### Q4: Simulation
+
+:::
+
+## Deliverable
+
+Submit a zip file to eLearn containing:
+
+- Written answers to Q1--Q3 with explanations and calculations.
+- Python code for Q4 implementing the simulation and the resulting plot.
+
+## References
+
+- [12. State Space Representation](https://smuhci.notion.site/12-State-Space-Representation)
+- Faizan, M. & Muzammil, M. (2020). Design and development of a wearable vibration absorber for reduction of Parkinsonian hand tremor. [https://pubmed.ncbi.nlm.nih.gov/32573306/](https://pubmed.ncbi.nlm.nih.gov/32573306/)
