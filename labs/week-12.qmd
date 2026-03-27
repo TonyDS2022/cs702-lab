@@ -1,0 +1,31 @@
+---
+title: "Lab Week 12."
+---
+
+## Introduction
+
+*Lab content to be added.*
+
+## Q1.
+
+::: {.callout-tip title="Answer" icon=false}
+*Your answer here.*
+:::
+
+## Q2.
+
+::: {.callout-tip title="Answer" icon=false}
+*Your answer here.*
+:::
+
+## Q3.
+
+::: {.callout-tip title="Answer" icon=false}
+*Your answer here.*
+:::
+
+## Q4.
+
+::: {.callout-tip title="Answer" icon=false}
+*Your answer here.*
+:::
