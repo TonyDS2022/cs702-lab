@@ -1,0 +1,101 @@
+---
+title: "Lab Week 11. Optimization-Based Control"
+---
+
+## Introduction
+
+Consider a pointing assistance system that uses model predictive control (MPC) to improve mouse cursor pointing tasks. Pointing at small interface targets---such as buttons, links, and icons---is fundamental but error-prone, especially for users with motor impairments. An MPC-based system predicts the user's intended target and gently guides the cursor, reducing overshooting and oscillation.
+
+We model the cursor dynamics as a discrete-time linear system in 1D (horizontal axis). The cursor state is:
+
+$$
+x_i = \begin{bmatrix} p_i \\ v_i \end{bmatrix}
+$$
+
+where $p_i$ is cursor position (pixels) and $v_i$ is cursor velocity (pixels/step). Assume that the dynamics follow:
+
+$$
+x_{i+1} = A\,x_i + B\,u_i
+$$
+
+with:
+
+$$
+A = \begin{bmatrix} 1 & 1 \\ 0 & 0.8 \end{bmatrix}, \quad B = \begin{bmatrix} 0 \\ 1 \end{bmatrix}
+$$
+
+Here $u_i \in \mathbb{R}$ is the assistance input---an adjustment to cursor acceleration---at time step $i$. The $0.8$ term in $A$ models velocity damping: without any input, the cursor gradually decelerates, mimicking friction or natural user deceleration near a target.
+
+The basic MPC formulation over a prediction horizon of $N$ steps is:
+
+$$
+\begin{aligned}
+\min_{u_0,\,\ldots,\,u_{N-1}} \quad & \sum_{i=0}^{N} \|x_i - r\|^2 \\
+\text{s.t.} \quad & x_{i+1} = A\,x_i + B\,u_i, \quad i = 0, \ldots, N-1 \\
+& x_0 = x_{\text{init}} \quad \text{(initial condition)}
+\end{aligned}
+$$
+
+where $r = [r_p,\; 0]^\intercal$ is the target reference: the desired position $r_p$ with zero velocity (at rest).
+
+## Q1. Terminal Constraint
+
+Add a terminal state constraint that ensures or encourages the cursor reaches the desired final state $x_N = r$. Then:
+
+- Write the updated optimization problem.
+- Explain what happens physically from the user's perspective when we enforce this terminal constraint as a hard constraint.
+
+::: {.callout-tip title="Answer" icon=false}
+*Your answer here.*
+:::
+
+## Q2. Input Constraints
+
+The optimization may produce input signals too large for practical use. Two common strategies address this:
+
+- Formulate a hard constraint on the input magnitude. Write the constraint mathematically.
+- Alternatively, add a soft penalty term to the objective function that penalizes large inputs. Write the modified objective function with a weighting parameter $\lambda > 0$.
+- Explain why limiting input magnitude matters from both a technical and user experience perspective. What would a user experience if the assistance inputs were excessively large?
+
+::: {.callout-tip title="Answer" icon=false}
+*Your answer here.*
+:::
+
+## Q3. Feasibility
+
+Consider the MPC problem from Q1 combined with the hard input constraint from Q2. Describe a concrete scenario (in terms of $x_0$, $r$, $N$, and the input bound) where this optimization problem would be infeasible---that is, no sequence of inputs can satisfy all constraints simultaneously. Explain your reasoning intuitively. Then propose one modification to the formulation that restores feasibility while still encouraging the cursor to reach the target.
+
+::: {.callout-tip title="Answer" icon=false}
+*Your answer here.*
+:::
+
+## Q4. 1D MPC Implementation
+
+Let:
+
+- Initial state: $x_0 = [0,\; 0]^\intercal$ (cursor starts at rest at position 0)
+- Target position: $r_p = 500$ pixels
+- Prediction horizon: $N = 20$ steps
+
+Implement the MPC problem from the Introduction (with or without the constraints from Q1 and Q2). Solve the optimization and plot:
+
+- Cursor position $p_i$ versus time step, with a horizontal dashed line at the target $r_p = 500$.
+- Cursor velocity $v_i$ versus time step.
+- Assistance input $u_i$ versus time step.
+
+::: {.callout-tip title="Answer" icon=false}
+```{python}
+# Your code here
+```
+:::
+
+## Deliverable
+
+Submit a zip file to eLearn containing:
+
+- Written answers to Q1--Q3 with explanations.
+- Python code for Q4
+
+## References
+
+- [14. Optimization-based Control](https://smuhci.notion.site/14-Optimization-based-Control)
