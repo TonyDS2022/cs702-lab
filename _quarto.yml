@@ -24,8 +24,6 @@ website:
             text: "Week 7: PCTL"
           - href: labs/week-08.qmd
             text: "Week 8: Dynamical Systems"
-          - href: labs/week-09.qmd
-            text: "Week 9: Dynamical Systems (Extended)"
           - href: labs/week-10.qmd
             text: "Week 10: State Space Model"
           - href: labs/week-11.qmd
