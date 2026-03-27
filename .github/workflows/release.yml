@@ -1,0 +1,56 @@
+name: Release Submission Zip
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get short commit SHA
+        id: sha
+        run: echo "short=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Build submission zip
+        run: |
+          zip -r cs702-lab-main.zip . \
+            --exclude ".git/*" \
+            --exclude ".github/*" \
+            --exclude ".devcontainer/*" \
+            --exclude "_site/*" \
+            --exclude ".venv/*" \
+            --exclude "*.pyc" \
+            --exclude "__pycache__/*" \
+            --exclude ".quarto/*" \
+            --exclude "node_modules/*"
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          COMMIT="${{ steps.sha.outputs.short }}"
+          cat <<EOF > release_notes.md
+          This \`zip\` file is a snapshot of my implementation for the lab sessions hosted on GitHub as of commit [$COMMIT](https://github.com/${{ github.repository }}/commit/${{ github.sha }}).
+
+          A compiled HTML version can be found here: https://tonyds2022.github.io/cs702-lab
+
+          The HTML version also contains a link to download a compiled PDF.
+
+          Source files can be found in the \`labs/\` directory.
+          EOF
+
+      - name: Update rolling latest release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "Latest Submission (commit ${{ steps.sha.outputs.short }})"
+          body_path: release_notes.md
+          files: cs702-lab-main.zip
+          make_latest: true
