@@ -19,33 +19,19 @@ where $x(t)$ is the distance between the robot and the user at time $t$, and $r$
 **Hint:** This is a first-order linear ODE. Try substituting $y(t) = x(t) - r$ to simplify it into the form $\dot{y} = -ky$, which has a well-known exponential solution. Once you've solved for $y(t)$, substitute back to find $x(t)$. Denote the arbitrary constant as $C$.
 
 ::: {.callout-tip title="Answer" icon=false}
-### Q1: Solving a First-Order ODE
-
-Starting with the ODE:
+We substitute $y(t) = x(t) - r$, so that $\dot{y} = \dot{x}$. The ODE then becomes
 
 $$
-\dot{x} = k(r - x)
+\dot{y} = k\bigl(r - (y + r)\bigr) = -ky,
 $$
 
-**Substitution:** Let $y(t) = x(t) - r$, so $\dot{y} = \dot{x}$. Substituting:
+which has the well-known exponential solution $y(t) = Ce^{-kt}$. Substituting back, we obtain the general solution
 
 $$
-\dot{y} = k(r - (y + r)) = -ky
+x(t) = r + Ce^{-kt},
 $$
 
-This is the standard first-order linear ODE with exponential solution:
-
-$$
-y(t) = Ce^{-kt}
-$$
-
-**Substituting back** $x(t) = y(t) + r$:
-
-$$
-\boxed{x(t) = r + Ce^{-kt}}
-$$
-
-where $C$ is an arbitrary constant determined by initial conditions. The solution shows that $x(t)$ exponentially approaches the setpoint $r$ over time, with rate governed by $k$.
+where $C$ is an arbitrary constant to be determined by the initial condition.
 :::
 
 ## Q2. Initial Value Problem
@@ -57,51 +43,32 @@ Use the initial condition to find the particular solution $x(t)$ from your gener
 Using this particular solution, compute $x(1)$ and $x(2)$. At approximately what time does the robot come within 0.1 meters of the setpoint (i.e., when does $|x(t) - r| < 0.1$)?
 
 ::: {.callout-tip title="Answer" icon=false}
-### Q2: Initial Value Problem
-
-**Finding C from the initial condition:**
-
-From Q1, $x(t) = r + Ce^{-kt}$. With $x(0) = 8.0$, $r = 2.0$, $k = 1.5$:
+Applying the initial condition $x(0) = 8.0$ to the general solution $x(t) = r + Ce^{-kt}$ with $r = 2.0$ and $k = 1.5$, we have
 
 $$
-8.0 = 2.0 + Ce^{0} \implies C = 6.0
+8.0 = 2.0 + C \implies C = 6.0,
 $$
 
-**Particular solution:**
+giving the particular solution
 
 $$
-x(t) = 2.0 + 6.0\,e^{-1.5t}
+x(t) = 2.0 + 6.0\,e^{-1.5t}.
 $$
 
-**Computing $x(1)$:**
+We then compute
 
 $$
-x(1) = 2.0 + 6.0\,e^{-1.5} = 2.0 + 6.0 \times 0.2231 \approx 3.339
+\begin{aligned}
+x(1) &= 2.0 + 6.0\,e^{-1.5} \approx 2.0 + 1.339 = 3.339, \\
+x(2) &= 2.0 + 6.0\,e^{-3.0} \approx 2.0 + 0.299 = 2.299.
+\end{aligned}
 $$
 
-**Computing $x(2)$:**
+To find when the robot comes within $0.1$ m of the setpoint, we solve $6.0\,e^{-1.5t} < 0.1$, i.e.
 
 $$
-x(2) = 2.0 + 6.0\,e^{-3.0} = 2.0 + 6.0 \times 0.0498 \approx 2.299
+t > \frac{-\ln(0.1/6.0)}{1.5} = \frac{\ln 60}{1.5} \approx \frac{4.094}{1.5} \approx 2.73 \text{ s}.
 $$
-
-**Time to come within 0.1 m of the setpoint:**
-
-We need $|x(t) - r| < 0.1$, i.e., $6.0\,e^{-1.5t} < 0.1$:
-
-$$
-e^{-1.5t} < \frac{0.1}{6.0} = 0.01\overline{6}
-$$
-
-$$
--1.5t < \ln(0.01\overline{6}) \approx -4.094
-$$
-
-$$
-t > \frac{4.094}{1.5} \approx 2.73 \text{ seconds}
-$$
-
-The robot comes within 0.1 meters of the setpoint at approximately **$t \approx 2.73$ seconds**.
 :::
 
 ## Q3. Analyzing a Proportional Controller
@@ -113,32 +80,15 @@ Compute the error $e$ and the control input $u$ that the P controller produces a
 In the Euler discretization of the system $x_{t+1} = x_t + \Delta t \cdot \dot{x}_t$, explain how the choice of $\Delta t$ affects the accuracy of the simulation. What happens if $\Delta t$ is too large?
 
 ::: {.callout-tip title="Answer" icon=false}
-### Q3: Analyzing a Proportional Controller
-
-**Error and control input:**
-
-The error is the difference between the setpoint and the measured distance:
+With $r = 2.0$ m and $x = 3.5$ m, the error and control input are
 
 $$
-e = r - x = 2.0 - 3.5 = -1.5
+e = r - x = 2.0 - 3.5 = -1.5, \qquad u = k_p\,e = 1.5 \times (-1.5) = -2.25.
 $$
 
-The P controller output:
+The negative sign of $u$ indicates that the controller commands the robot to move *toward* the user (i.e., to decrease the distance), which is physically correct since the robot is currently farther than the setpoint.
 
-$$
-u = k_p \cdot e = 1.5 \times (-1.5) = -2.25
-$$
-
-**Physical meaning of the sign of $u$:** The negative sign of $u$ means the robot should *decrease* the distance — i.e., move **toward** the user. Since the current distance (3.5 m) exceeds the desired distance (2.0 m), the robot is too far away and needs to close the gap. The magnitude (2.25) indicates how aggressively it should approach.
-
-**Effect of $\Delta t$ on Euler discretization:**
-
-In the Euler method $x_{t+1} = x_t + \Delta t \cdot \dot{x}_t$, the choice of $\Delta t$ directly affects accuracy:
-
-- **Small $\Delta t$**: The discrete approximation closely follows the true continuous trajectory, giving high accuracy at the cost of more computation steps.
-- **Large $\Delta t$**: The approximation becomes coarser. If $\Delta t$ is too large, the simulation can **overshoot** the setpoint — the robot jumps past the desired distance, causing oscillations or even divergence (numerical instability). In the worst case, the system becomes unstable and the error grows without bound.
-
-As a rule of thumb, $\Delta t$ should be small relative to the system's time constant ($1/k$) to maintain stability.
+Regarding the effect of $\Delta t$: the Euler method approximates the continuous trajectory by straight-line steps of length $\Delta t$. A smaller $\Delta t$ improves accuracy by keeping each step close to the true tangent of the trajectory. If $\Delta t$ is too large, the discrete update overshoots the equilibrium—the robot jumps past the setpoint at each step—leading to oscillations or outright divergence. The stability condition for a P controller with gain $k_p$ is $\Delta t < 2/k_p$, so the step size must be chosen to respect this bound.
 :::
 
 ## Q4. P Controller Simulation
@@ -262,7 +212,7 @@ plt.show()
 ```
 :::
 
-The plot shows the robot's distance from the user over time. With the P controller ($k_p = 0.8$), the distance exponentially decays from the initial 8.0 m toward the setpoint of 2.0 m. The response is smooth with no overshoot, characteristic of a well-tuned proportional controller for a first-order system.
+As shown in the plot, the distance decays smoothly from $8.0$ m toward the setpoint $r = 2.0$ m with no overshoot, consistent with the exponential convergence predicted analytically in Q1–Q2.
 :::
 
 ## Deliverable
