@@ -28,8 +28,57 @@ $$
 Write your answer both symbolically (in terms of $m$, $b$, $k$) and numerically using the parameter values given above.
 
 ::: {.callout-tip title="Answer" icon=false}
-### Q1: Deriving a State Space Form
+We define the state vector as
 
+$$
+\mathbf{x} = \begin{bmatrix} \theta \\ \dot{\theta} \end{bmatrix}.
+$$
+
+Since $\dot{x}_1 = \dot{\theta} = x_2$, and from
+
+$$
+m\,\ddot{\theta} + b\,\dot{\theta} + k\,\theta = u,
+$$
+
+we have
+
+$$
+\dot{x}_2 = \ddot{\theta} = -\frac{k}{m}x_1 - \frac{b}{m}x_2 + \frac{1}{m}u.
+$$
+
+Thus, the state-space model is
+
+$$
+\dot{\mathbf{x}} = A\mathbf{x} + Bu,
+$$
+
+with
+
+$$
+A = \begin{bmatrix}
+0 & 1 \\
+-\frac{k}{m} & -\frac{b}{m}
+\end{bmatrix},
+\qquad
+B = \begin{bmatrix}
+0 \\
+\frac{1}{m}
+\end{bmatrix}.
+$$
+
+Using $m = 0.0024$, $b = 0.01$, and $k = 0.16$, we obtain
+
+$$
+A = \begin{bmatrix}
+0 & 1 \\
+-66.67 & -4.17
+\end{bmatrix},
+\qquad
+B = \begin{bmatrix}
+0 \\
+416.67
+\end{bmatrix}.
+$$
 :::
 
 ## Q2. Output Matrix
@@ -40,8 +89,29 @@ In a wearable tremor suppression device, sensors measure the patient's wrist mot
 - If instead the sensor can measure angular displacement $\theta$ (e.g., using distance sensor), how does $C$ change?
 
 ::: {.callout-tip title="Answer" icon=false}
-### Q2: Output Matrix
+If the sensor measures angular velocity only, then we have
 
+$$
+\ y = \dot{\theta} = \begin{bmatrix} 0 & 1 \end{bmatrix} \mathbf{x},
+$$
+
+so the output matrix is
+
+$$
+C = \begin{bmatrix} 0 & 1 \end{bmatrix}.
+$$
+
+If instead the sensor measures angular displacement only, then
+
+$$
+ y = \theta = \begin{bmatrix} 1 & 0 \end{bmatrix} \mathbf{x},
+$$
+
+so the output matrix becomes
+
+$$
+C = \begin{bmatrix} 1 & 0 \end{bmatrix}.
+$$
 :::
 
 ## Q3. Reachability and Observability
@@ -67,8 +137,51 @@ Is the system observable? Justify by checking the rank of $\mathcal{O}$.
 In one or two sentences, explain what reachability and observability mean physically for this wearable tremor suppression device. Why should a designer care about these properties?
 
 ::: {.callout-tip title="Answer" icon=false}
-### Q3: Reachability and Observability
+Using the matrices from Q1, the reachability matrix is
 
+$$
+\mathcal{R} = \begin{bmatrix} B & AB \end{bmatrix}.
+$$
+
+Since
+
+$$
+AB = \begin{bmatrix}
+\frac{1}{m} \\
+-\frac{b}{m^2}
+\end{bmatrix},
+$$
+
+we get
+
+$$
+\mathcal{R} = \begin{bmatrix}
+0 & \frac{1}{m} \\
+\frac{1}{m} & -\frac{b}{m^2}
+\end{bmatrix}.
+$$
+
+Its determinant is
+
+$$
+\det(\mathcal{R}) = -\frac{1}{m^2} \neq 0,
+$$
+
+so the system is reachable.
+
+For the output matrix $C = \begin{bmatrix} 1 & 0 \end{bmatrix}$, the observability matrix is
+
+$$
+\mathcal{O} = \begin{bmatrix} C \\ CA \end{bmatrix}
+= \begin{bmatrix}
+1 & 0 \\
+0 & 1
+\end{bmatrix}.
+$$
+
+Hence, the system is observable.
+
+Physically, reachability means we can drive both the angle and angular velocity using the tremor input, while observability means we can recover the full wrist state from the measured output. For a tremor suppression device, both properties matter because we want to influence the motion and estimate what the wrist is doing from limited sensors.
 :::
 
 ## Q4. Simulation
@@ -80,8 +193,89 @@ Using Python and `scipy.signal`, simulate the wrist's response to a sustained Pa
 - Plot wrist angular displacement $\theta(t)$ in degrees versus time. Briefly discuss whether the steady-state amplitude appears large or small, and explain why.
 
 ::: {.callout-tip title="Answer" icon=false}
-### Q4: Simulation
+```{python}
+import numpy as np
+from scipy import signal
 
+m = 0.0024
+b = 0.01
+k = 0.16
+
+A = np.array([[0, 1], [-k / m, -b / m]])
+B = np.array([[0], [1 / m]])
+C = np.array([[1, 0]])
+D = np.array([[0]])
+
+sys = signal.StateSpace(A, B, C, D)
+
+t = np.linspace(0, 3, 3001)
+# 5 Hz tremor torque, matching the introduction
+u = 0.005 * np.sin(2 * np.pi * 5 * t)
+
+_, y, _ = signal.lsim(sys, U=u, T=t, X0=[0, 0])
+theta_deg = np.degrees(y)
+```
+
+::: {.content-visible when-format="html"}
+```{python}
+#| eval: true
+#| output: true
+
+import plotly.graph_objects as go
+
+fig = go.Figure()
+fig.add_trace(go.Scatter(
+    x=t,
+    y=theta_deg,
+    mode="lines",
+    name=r"$\theta(t)$",
+    line=dict(color="#FD730A", width=2.5),
+))
+
+fig.update_layout(
+    template="plotly_dark",
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(0,0,0,0)",
+    title="Wrist Angular Displacement Under Tremor",
+    xaxis_title="Time (s)",
+    yaxis_title="Angle (degrees)",
+    font=dict(color="#fff"),
+    legend=dict(font=dict(color="#fff")),
+)
+
+fig.show()
+```
+:::
+
+::: {.content-visible when-format="pdf"}
+```{python}
+#| eval: true
+#| output: true
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+sns.set_theme(style="whitegrid", font_scale=1.05, rc={
+    "axes.edgecolor": "#444444",
+    "grid.color": "#e0e0e0",
+    "grid.linestyle": "--",
+    "grid.alpha": 0.4,
+    "figure.facecolor": "white",
+})
+
+fig, ax = plt.subplots(figsize=(10, 4.8))
+ax.plot(t, theta_deg, color="#FD730A", linewidth=2.2, label=r"$\theta(t)$")
+ax.set_xlabel("Time (s)")
+ax.set_ylabel("Angle (degrees)")
+ax.set_title("Wrist Angular Displacement Under Tremor", color="#FD730A", fontweight="bold")
+ax.legend()
+sns.despine(left=True)
+plt.tight_layout()
+plt.show()
+```
+:::
+
+The steady-state amplitude is small, which is consistent with the high stiffness and damping relative to the small input torque. The tremor is periodic, but the wrist behaves like a lightly driven second-order system, so the displacement remains limited.
 :::
 
 ## Deliverable
